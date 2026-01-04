@@ -7,22 +7,31 @@
 <script src="/socket.io/socket.io.js"></script>
 
 <style>
-body{
+html,body{
   margin:0;
-  height:100vh;
-  background:#d3d3d3;
+  height:100%;
+}
+body{
+  background:linear-gradient(135deg,#f5f5f5,#dcdcdc);
   display:flex;
   flex-direction:column;
   align-items:center;
   justify-content:center;
   font-family:system-ui,Arial;
+  text-align:center;
 }
-h1{font-size:36px;margin-bottom:10px}
+
+h1{
+  font-size:36px;
+  margin-bottom:8px;
+}
+
 .wrap{
   position:relative;
   width:420px;
   height:380px;
 }
+
 .heart{
   position:absolute;
   inset:0;
@@ -31,18 +40,50 @@ h1{font-size:36px;margin-bottom:10px}
   display:flex;
   align-items:center;
   justify-content:center;
-  text-align:center;
-  padding:40px;
-  font-weight:700;
+  padding:42px;
+  font-weight:800;
+  font-size:20px;
+  line-height:1.4;
+  box-shadow:
+    0 10px 25px rgba(0,0,0,0.25),
+    inset 0 0 25px rgba(255,0,0,0.15);
 }
+
 canvas{
   position:absolute;
   inset:0;
+  touch-action:none;
 }
+
 button{
-  margin-top:15px;
-  padding:10px 20px;
+  margin-top:18px;
+  padding:12px 28px;
   font-size:16px;
+  border:none;
+  border-radius:6px;
+  background:#ff0000;
+  color:#fff;
+}
+
+.footer{
+  margin-top:10px;
+  font-size:12px;
+  color:#555;
+}
+
+/* 🎉 celebration dots */
+.confetti{
+  position:fixed;
+  width:8px;
+  height:8px;
+  background:red;
+  border-radius:50%;
+  animation:pop 900ms ease-out forwards;
+}
+
+@keyframes pop{
+  from{transform:translateY(0) scale(1);opacity:1}
+  to{transform:translateY(-120px) scale(0);opacity:0}
 }
 </style>
 </head>
@@ -52,11 +93,12 @@ button{
 <h1>Scratch Adventure</h1>
 
 <div class="wrap">
-  <div class="heart" id="dareText">Waiting...</div>
+  <div class="heart" id="dareText">Scratch to reveal</div>
   <canvas id="scratch"></canvas>
 </div>
 
 <button onclick="nextRound()">Next Round</button>
+<div class="footer">created by devharrryyy?</div>
 
 <script>
 const room =
@@ -71,57 +113,67 @@ canvas.width = 420;
 canvas.height = 380;
 
 function drawCover(){
-  ctx.globalCompositeOperation = "source-over";
+  ctx.globalCompositeOperation="source-over";
   ctx.clearRect(0,0,420,380);
-  ctx.fillStyle = "#ff0000";
+  ctx.fillStyle="#ff0000";
   ctx.beginPath();
   ctx.moveTo(210,300);
   ctx.bezierCurveTo(0,180,60,-20,210,90);
   ctx.bezierCurveTo(360,-20,420,180,210,300);
   ctx.fill();
-  ctx.globalCompositeOperation = "destination-out";
+  ctx.globalCompositeOperation="destination-out";
 }
 
 drawCover();
 
-let scratching = false;
+let scratching=false;
 
-canvas.onpointerdown = () => scratching = true;
-canvas.onpointerup = canvas.onpointerleave = () => {
-  scratching = false;
-  socket.emit("scratch-complete", room);
+canvas.onpointerdown=()=>scratching=true;
+canvas.onpointerup=canvas.onpointerleave=()=>{
+  scratching=false;
+  socket.emit("scratch-complete",room);
 };
 
-canvas.onpointermove = e => {
+canvas.onpointermove=e=>{
   if(!scratching) return;
-  const r = canvas.getBoundingClientRect();
-  const x = e.clientX - r.left;
-  const y = e.clientY - r.top;
-  scratch(x,y);
-  socket.emit("scratch", { room, x, y });
+  const r=canvas.getBoundingClientRect();
+  scratch(e.clientX-r.left,e.clientY-r.top);
+  socket.emit("scratch",{room,x:e.clientX-r.left,y:e.clientY-r.top});
 };
 
 function scratch(x,y){
   ctx.beginPath();
-  ctx.arc(x, y, 26, 0, Math.PI*2);
+  ctx.arc(x,y,26,0,Math.PI*2);
   ctx.fill();
 }
 
-socket.on("scratch", data => {
-  scratch(data.x, data.y);
+socket.on("scratch",d=>scratch(d.x,d.y));
+
+socket.on("reveal",d=>{
+  document.getElementById("dareText").innerText=d;
+  celebrate();
 });
 
-socket.on("reveal", dare => {
-  document.getElementById("dareText").innerText = dare;
-});
-
-socket.on("state", () => {
-  document.getElementById("dareText").innerText = "Scratch to reveal";
+socket.on("state",()=>{
+  document.getElementById("dareText").innerText="Scratch to reveal";
   drawCover();
 });
 
 function nextRound(){
-  socket.emit("new-round", room);
+  socket.emit("new-round",room);
+}
+
+/* 🎉 celebration */
+function celebrate(){
+  for(let i=0;i<20;i++){
+    const c=document.createElement("div");
+    c.className="confetti";
+    c.style.left=Math.random()*100+"vw";
+    c.style.top="60%";
+    c.style.background=`hsl(${Math.random()*360},90%,50%)`;
+    document.body.appendChild(c);
+    setTimeout(()=>c.remove(),900);
+  }
 }
 </script>
 
