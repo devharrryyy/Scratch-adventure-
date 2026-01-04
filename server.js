@@ -1,4 +1,3 @@
- 
 const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
@@ -8,15 +7,15 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-// ✅ Serve static files from root
+// ✅ Serve static root
 app.use(express.static(__dirname));
 
-// ✅ Serve index.html for root URL
-app.get("/", (req, res) => {
+// ✅ Always serve index.html for any GET request
+app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
 
-// ✅ Dare list
+// ✅ Dares
 const dares = [
   "Apni ek cute selfie bhejo",
   "Sirf emojis me apna mood batao",
@@ -47,41 +46,23 @@ function getRandomDare() {
 }
 
 io.on("connection", socket => {
-
   socket.on("join", room => {
     socket.join(room);
-
-    if (!rooms[room]) {
-      rooms[room] = {
-        dare: getRandomDare(),
-        scratched: false
-      };
-    }
-
+    if (!rooms[room]) rooms[room] = { dare: getRandomDare(), scratched: false };
     socket.emit("state", rooms[room]);
   });
 
-  socket.on("scratch", data => {
-    socket.to(data.room).emit("scratch", data);
-  });
-
+  socket.on("scratch", data => socket.to(data.room).emit("scratch", data));
   socket.on("scratch-complete", room => {
     rooms[room].scratched = true;
     io.to(room).emit("reveal", rooms[room].dare);
   });
-
   socket.on("new-round", room => {
-    rooms[room] = {
-      dare: getRandomDare(),
-      scratched: false
-    };
+    rooms[room] = { dare: getRandomDare(), scratched: false };
     io.to(room).emit("state", rooms[room]);
   });
-
 });
 
-// ✅ PORT fix for Render
+// ✅ Render PORT fix
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
