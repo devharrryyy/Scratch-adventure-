@@ -1,3 +1,4 @@
+ 
 const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
@@ -7,9 +8,15 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-// ✅ Serve static files from root (index.html is in root)
+// ✅ Serve static files from root
 app.use(express.static(__dirname));
 
+// ✅ Serve index.html for root URL
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "index.html"));
+});
+
+// ✅ Dare list
 const dares = [
   "Apni ek cute selfie bhejo",
   "Sirf emojis me apna mood batao",
