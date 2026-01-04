@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Scratch Adventure Live</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="/socket.io/socket.io.js"></script>
+
+<style>
+body{
+  margin:0;
+  height:100vh;
+  background:#d3d3d3;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  font-family:system-ui,Arial;
+}
+h1{font-size:36px;margin-bottom:10px}
+.wrap{
+  position:relative;
+  width:420px;
+  height:380px;
+}
+.heart{
+  position:absolute;
+  inset:0;
+  background:#fff;
+  clip-path:path("M210 300 C 0 180 60 -20 210 90 C 360 -20 420 180 210 300 Z");
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  padding:40px;
+  font-weight:700;
+}
+canvas{
+  position:absolute;
+  inset:0;
+}
+button{
+  margin-top:15px;
+  padding:10px 20px;
+  font-size:16px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>Scratch Adventure</h1>
+
+<div class="wrap">
+  <div class="heart" id="dareText">Waiting...</div>
+  <canvas id="scratch"></canvas>
+</div>
+
+<button onclick="nextRound()">Next Round</button>
+
+<script>
+const room =
+  new URLSearchParams(window.location.search).get("room") || "default";
+
+const socket = io();
+socket.emit("join", room);
+
+const canvas = document.getElementById("scratch");
+const ctx = canvas.getContext("2d");
+canvas.width = 420;
+canvas.height = 380;
+
+function drawCover(){
+  ctx.globalCompositeOperation = "source-over";
+  ctx.clearRect(0,0,420,380);
+  ctx.fillStyle = "#ff0000";
+  ctx.beginPath();
+  ctx.moveTo(210,300);
+  ctx.bezierCurveTo(0,180,60,-20,210,90);
+  ctx.bezierCurveTo(360,-20,420,180,210,300);
+  ctx.fill();
+  ctx.globalCompositeOperation = "destination-out";
+}
+
+drawCover();
+
+let scratching = false;
+
+canvas.onpointerdown = () => scratching = true;
+canvas.onpointerup = canvas.onpointerleave = () => {
+  scratching = false;
+  socket.emit("scratch-complete", room);
+};
+
+canvas.onpointermove = e => {
+  if(!scratching) return;
+  const r = canvas.getBoundingClientRect();
+  const x = e.clientX - r.left;
+  const y = e.clientY - r.top;
+  scratch(x,y);
+  socket.emit("scratch", { room, x, y });
+};
+
+function scratch(x,y){
+  ctx.beginPath();
+  ctx.arc(x, y, 26, 0, Math.PI*2);
+  ctx.fill();
+}
+
+socket.on("scratch", data => {
+  scratch(data.x, data.y);
+});
+
+socket.on("reveal", dare => {
+  document.getElementById("dareText").innerText = dare;
+});
+
+socket.on("state", () => {
+  document.getElementById("dareText").innerText = "Scratch to reveal";
+  drawCover();
+});
+
+function nextRound(){
+  socket.emit("new-round", room);
+}
+</script>
+
+</body>
+</html>
