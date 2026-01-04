@@ -1,43 +1,36 @@
 const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
+const path = require("path");
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-app.use(express.static("public"));
+// ✅ Serve static files from root (index.html is in root)
+app.use(express.static(__dirname));
 
 const dares = [
   "Apni ek cute selfie bhejo",
-"Sirf emojis me apna mood batao",
-"Ek honest compliment bhejo",
-"Apna favourite song share karo",
-"5 minute tak fast reply karo",
-"Ek flirty line likho",
-"Apna nickname batao",
-"Ek cheez batao jo tumhe smile de",
-"Voice note me sirf ‘hi’ bolo",
-"Apni recent photo (normal) bhejo",
-"Ek secret emoji me likho",
-"Apni playlist ka last song batao",
-"Ek fun GIF bhejo",
-"Apna current status describe karo",
-"Ek random memory share karo",
-"Sirf ek word me mujhe describe karo",
-"Apni favourite app batao",
-"Ek funny sticker bhejo",
-"Apna favourite late-night activity batao",
-"Ek sweet good-night line likho",
-"Apni handwriting me naam likh ke pic bhejo",
-"Ek imaginary date idea batao",
-"Apna screen wallpaper describe karo",
-"Ek cheez jo tumhe attractive lagti ho",
-"Sirf ‘yes’ ya ‘no’ me next sawaal ka jawab do",
-"Ek photo jo tumhe pasand ho share karo",
-"Apni favourite gaali censored me likho",
-"Ek inside joke banao",
-"Apna mood change karne wali cheez batao",
+  "Sirf emojis me apna mood batao",
+  "Ek honest compliment bhejo",
+  "Apna favourite song share karo",
+  "5 minute tak fast reply karo",
+  "Ek flirty line likho",
+  "Apna nickname batao",
+  "Ek cheez batao jo tumhe smile de",
+  "Voice note me sirf hi bolo",
+  "Apni recent photo bhejo",
+  "Ek secret batao",
+  "Ek fun GIF bhejo",
+  "Apna current status describe karo",
+  "Ek random memory share karo",
+  "Sirf ek word me mujhe describe karo",
+  "Apna favourite late-night activity batao",
+  "Ek sweet good-night line likho",
+  "Ek imaginary date idea batao",
+  "Ek cheez jo tumhe attractive lagti ho",
+  "Next round ka dare tum set karo"
 ];
 
 const rooms = {};
@@ -80,6 +73,8 @@ io.on("connection", socket => {
 
 });
 
-server.listen(3000, () => {
-  console.log("Server running on port 3000");
+// ✅ PORT fix for Render
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
