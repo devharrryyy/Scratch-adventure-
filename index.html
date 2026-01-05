@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>Scratch Adventure 💕</title>
   <style>
-    /* ===== RESET & BASE ===== */
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
     html, body { height: 100%; overflow: hidden; }
     body { 
@@ -93,7 +92,9 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      transition: all 0.3s;
     }
+    .top-btn:active { transform: scale(0.9); }
 
     /* ===== CENTER CONTENT - FIXED ALIGNMENT ===== */
     .center-content { 
@@ -152,12 +153,15 @@
       text-align: center;
     }
     
-    /* LINE 5: Dare Box */
+    /* LINE 5: Dare Box - RED BACKGROUND */
     .dare-box { 
       position: relative; 
       width: 350px; 
       height: 120px; 
       margin: 20px 0; 
+      border-radius: 15px;
+      overflow: hidden;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.2);
     }
     #scratchCanvas { 
       position: absolute; 
@@ -165,7 +169,7 @@
       left: 0; 
       width: 100%; 
       height: 100%; 
-      background: #ff0000; 
+      background: #ff0000; /* RED COLOR */
       cursor: crosshair; 
       border-radius: 15px; 
       z-index: 2;
@@ -204,9 +208,9 @@
       text-align: center;
     }
     .complete-btn:hover { transform: scale(1.05); box-shadow: 0 8px 25px rgba(76,175,80,0.4); }
-    .complete-btn:disabled { background: #ccc !important; cursor: not-allowed; transform: scale(1); opacity: 0.6; }
+    .complete-btn:disabled { background: #ccc !important; cursor: not-allowed !important; transform: scale(1) !important; opacity: 0.6; }
 
-    /* ===== BOTTOM BAR - FIXED ===== */
+    /* ===== BOTTOM BAR - FIXED - ALWAYS VISIBLE ===== */
     .bottom-bar { 
       display: flex; 
       justify-content: space-between; 
@@ -244,21 +248,8 @@
       font-size: 0.9em;
       text-align: center;
     }
-    .minimize-btn { 
-      background: rgba(255,255,255,0.2); 
-      border: none; 
-      font-size: 20px; 
-      cursor: pointer; 
-      color: #333;
-      width: 35px;
-      height: 35px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
 
-    /* ===== STATUS DOTS ===== */
+    /* ===== STATUS DOTS - ACTIVE/INACTIVE ===== */
     .status-dot { 
       width: 8px; 
       height: 8px; 
@@ -271,26 +262,6 @@
     .status-offline { background: #ccc; }
     @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
 
-    /* ===== MINIMIZED WINDOW ===== */
-    .minimized { 
-      position: fixed; 
-      width: 150px; 
-      height: 80px; 
-      bottom: 20px; 
-      right: 20px; 
-      background: white; 
-      border-radius: 10px; 
-      box-shadow: 0 5px 20px rgba(0,0,0,0.3); 
-      cursor: pointer; 
-      display: none; 
-      flex-direction: column; 
-      align-items: center; 
-      justify-content: center; 
-      z-index: 999;
-    }
-    .minimized-title { font-size: 12px; font-weight: bold; color: #333; }
-    .minimized-turn { font-size: 10px; color: #666; }
-
     /* ===== HIDDEN UTILITY ===== */
     .hidden { display: none !important; }
 
@@ -300,6 +271,7 @@
       .game-title { font-size: 2em; }
       .instruction { font-size: 1em; }
       .turn-indicator { font-size: 1.1em; }
+      .top-bar, .bottom-bar { padding: 10px 15px; }
     }
   </style>
 </head>
@@ -320,32 +292,37 @@
 
   <!-- ===== GAME SCREEN ===== -->
   <div class="game-screen" id="gameScreen">
-    <!-- LINE 1: Top Bar -->
+    <!-- TOP BAR -->
     <div class="top-bar">
       <button class="top-btn exit-btn" onclick="showExitConfirm()">❌</button>
       <button class="top-btn invite-btn" id="inviteBtn" onclick="showInvitePopup()">🔗</button>
     </div>
 
-    <!-- LINE 2-6: Center Content (Fixed Alignment) -->
+    <!-- CENTER CONTENT -->
     <div class="center-content">
+      <!-- LINE 1 -->
       <h2 class="game-title">💕 Scratch Adventure</h2>
+      <!-- LINE 2 -->
       <p class="instruction">Scratch the field with your finger</p>
+      <!-- LINE 3 -->
       <div class="turn-indicator" id="turnIndicator">Waiting for partner to join...</div>
+      <!-- LINE 4 -->
       <div class="name-plate" id="creatorName">Room</div>
-      <div class="dare-box" id="dareBox"><canvas id="scratchCanvas"></canvas><div class="dare-text" id="dareText">♥️ Scratch to reveal!</div></div>
+      <!-- LINE 5: DARE BOX -->
+      <div class="dare-box" id="dareBox">
+        <canvas id="scratchCanvas"></canvas>
+        <div class="dare-text" id="dareText">♥️ Scratch to reveal!</div>
+      </div>
+      <!-- LINE 6: COMPLETE BUTTON -->
       <button class="complete-btn hidden" id="completeBtn" onclick="completeDare()">✅ Dare Completed</button>
     </div>
 
-    <!-- LINE 7: Bottom Bar (ALWAYS VISIBLE) -->
+    <!-- BOTTOM BAR - ALWAYS VISIBLE -->
     <div class="bottom-bar">
       <div class="profile-status"><div class="profile-icon">👤</div><span id="joinerStatus">Partner <span class="status-dot status-offline"></span></span></div>
       <div class="creator-info">Created by urluv_harrryyy</div>
-      <button class="minimize-btn" onclick="minimizeWindow()">➖</button>
     </div>
   </div>
-
-  <!-- ===== MINIMIZED WINDOW ===== -->
-  <div class="minimized" id="minimizedWindow"><div class="minimized-title">Scratch Game</div><div class="minimized-turn" id="minimizedTurn">Waiting...</div></div>
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
@@ -367,8 +344,9 @@
     let isMyTurn = false;
     let joinerJoined = false;
     let lastEmitTime = 0;
+    let isPageActive = true;
 
-    // ===== CREATE FLOATING PARTICLES (MULTI-COLOR) =====
+    // ===== CREATE FLOATING PARTICLES =====
     function createParticles() {
       const container = document.getElementById('particles');
       const colors = ['heart', 'dot1', 'dot2', 'dot3', 'dot4'];
@@ -417,7 +395,7 @@
       socket.emit('join', currentRoom);
     }
 
-    // ===== INVITE COPY =====
+    // ===== INVITE COPY - REMOVED FOR JOINER =====
     async function copyLink() {
       try {
         const link = document.getElementById('inviteLink');
@@ -432,7 +410,7 @@
       }
     }
 
-    // ===== CANVAS SETUP - RED COLOR =====
+    // ===== CANVAS SETUP - RED LAYER =====
     const canvas = document.getElementById('scratchCanvas');
     const ctx = canvas.getContext('2d');
 
@@ -444,11 +422,11 @@
       canvas.style.height = CONFIG.CANVAS_HEIGHT + 'px';
       ctx.scale(dpr, dpr);
       
-      // RED LAYER
+      // DRAW RED LAYER
       ctx.fillStyle = '#ff0000';
       ctx.fillRect(0, 0, CONFIG.CANVAS_WIDTH, CONFIG.CANVAS_HEIGHT);
       
-      // WHITE BACKGROUND (hidden)
+      // SET ERASE MODE
       ctx.globalCompositeOperation = 'destination-out';
     }
 
@@ -456,6 +434,14 @@
     socket.on('role', (role) => {
       currentRole = role;
       isMyTurn = (role === 'creator');
+      
+      // HIDE INVITE BUTTON FOR JOINER
+      if (role === 'joiner') {
+        document.getElementById('inviteBtn').style.display = 'none';
+      } else {
+        document.getElementById('inviteBtn').style.display = 'block';
+      }
+      
       updateUI();
     });
 
@@ -478,6 +464,18 @@
       updateUI();
     });
 
+    socket.on('joiner-left', () => {
+      joinerJoined = false;
+      updateUI();
+    });
+
+    socket.on('user-status', (data) => {
+      const statusDot = document.querySelector('#joinerStatus .status-dot');
+      if (data.userId === rooms[currentRoom]?.joiner) {
+        statusDot.className = data.active ? 'status-dot status-online' : 'status-dot status-offline';
+      }
+    });
+
     socket.on('new-turn', (data) => {
       hasScratched = false;
       document.getElementById('dareText').textContent = '♥️ Scratch to reveal!';
@@ -498,11 +496,16 @@
     function updateUI() {
       const indicator = document.getElementById('turnIndicator');
       const statusDot = document.querySelector('#joinerStatus .status-dot');
+      const completeBtn = document.getElementById('completeBtn');
       
       // Update status dot
-      statusDot.className = joinerJoined ? 'status-dot status-online' : 'status-dot status-offline';
+      if (joinerJoined) {
+        statusDot.className = isPageActive ? 'status-dot status-online' : 'status-dot status-offline';
+      } else {
+        statusDot.className = 'status-dot status-offline';
+      }
       
-      // Update turn text
+      // Update turn indicator
       if (!joinerJoined) {
         indicator.textContent = '⏳ Waiting for partner to join...';
       } else if (isMyTurn && !hasScratched) {
@@ -513,14 +516,11 @@
         indicator.textContent = '💖 Dare revealed! Tap "Dare Completed"';
       }
       
-      // Update button state
-      const completeBtn = document.getElementById('completeBtn');
+      // Show/hide complete button
       if (hasScratched && joinerJoined) {
-        completeBtn.disabled = false;
-        completeBtn.classList.remove('disabled');
+        completeBtn.classList.remove('hidden');
       } else {
-        completeBtn.disabled = true;
-        completeBtn.classList.add('disabled');
+        completeBtn.classList.add('hidden');
       }
     }
 
@@ -534,26 +534,55 @@
       updateUI();
     }
 
-    // ===== SMOOTH SCRATCHING =====
+    // ===== SMOOTH SCRATCHING - FIXED =====
     let isDrawing = false;
     let lastX = 0, lastY = 0;
 
     canvas.addEventListener('mousedown', (e) => { 
       if (isMyTurn && joinerJoined && !hasScratched) {
         isDrawing = true;
-        lastX = e.offsetX;
-        lastY = e.offsetY;
+        const rect = canvas.getBoundingClientRect();
+        lastX = (e.clientX - rect.left) * (CONFIG.CANVAS_WIDTH / rect.width);
+        lastY = (e.clientY - rect.top) * (CONFIG.CANVAS_HEIGHT / rect.height);
       } 
     });
+    
+    canvas.addEventListener('mousemove', (e) => {
+      if (!isDrawing || !isMyTurn || !joinerJoined || hasScratched) return;
+      
+      const now = Date.now();
+      if (now - lastEmitTime < CONFIG.DRAW_INTERVAL) return;
+      lastEmitTime = now;
+
+      const rect = canvas.getBoundingClientRect();
+      const x = (e.clientX - rect.left) * (CONFIG.CANVAS_WIDTH / rect.width);
+      const y = (e.clientY - rect.top) * (CONFIG.CANVAS_HEIGHT / rect.height);
+      
+      // DRAW SMOOTH LINE - FIX: Use fill for erasing
+      ctx.lineWidth = CONFIG.SCRATCH_RADIUS * 2;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(lastX, lastY);
+      ctx.lineTo(x, y);
+      ctx.stroke();
+      
+      lastX = x;
+      lastY = y;
+      
+      // EMIT TO OTHER PLAYER
+      socket.emit('scratch', { room: currentRoom, x, y, radius: CONFIG.SCRATCH_RADIUS });
+    });
+    
     canvas.addEventListener('mouseup', () => { 
       if (isMyTurn) { 
         isDrawing = false; 
         checkScratchComplete(); 
       } 
     });
-    canvas.addEventListener('mousemove', draw);
+    
     canvas.addEventListener('mouseleave', () => { isDrawing = false; });
     
+    // TOUCH EVENTS
     canvas.addEventListener('touchstart', (e) => { 
       e.preventDefault(); 
       if (isMyTurn && joinerJoined && !hasScratched) {
@@ -563,15 +592,9 @@
         isDrawing = true;
       } 
     });
-    canvas.addEventListener('touchend', () => { 
-      if (isMyTurn) { 
-        isDrawing = false; 
-        checkScratchComplete(); 
-      } 
-    });
-    canvas.addEventListener('touchmove', draw);
-
-    function draw(e) {
+    
+    canvas.addEventListener('touchmove', (e) => {
+      e.preventDefault();
       if (!isDrawing || !isMyTurn || !joinerJoined || hasScratched) return;
       
       const now = Date.now();
@@ -579,25 +602,33 @@
       lastEmitTime = now;
 
       const rect = canvas.getBoundingClientRect();
-      const x = ((e.clientX || e.touches[0].clientX) - rect.left) * (CONFIG.CANVAS_WIDTH / rect.width);
-      const y = ((e.clientY || e.touches[0].clientY) - rect.top) * (CONFIG.CANVAS_HEIGHT / rect.height);
+      const x = (e.touches[0].clientX - rect.left) * (CONFIG.CANVAS_WIDTH / rect.width);
+      const y = (e.touches[0].clientY - rect.top) * (CONFIG.CANVAS_HEIGHT / rect.height);
       
-      // DRAW SMOOTH LINE
+      ctx.lineWidth = CONFIG.SCRATCH_RADIUS * 2;
+      ctx.lineCap = 'round';
       ctx.beginPath();
       ctx.moveTo(lastX, lastY);
       ctx.lineTo(x, y);
-      ctx.lineWidth = CONFIG.SCRATCH_RADIUS * 2;
-      ctx.lineCap = 'round';
       ctx.stroke();
       
       lastX = x;
       lastY = y;
       
-      // EMIT TO OTHER PLAYER
       socket.emit('scratch', { room: currentRoom, x, y, radius: CONFIG.SCRATCH_RADIUS });
-    }
+    });
+    
+    canvas.addEventListener('touchend', () => { 
+      if (isMyTurn) { 
+        isDrawing = false; 
+        checkScratchComplete(); 
+      } 
+    });
 
     socket.on('scratch', (data) => {
+      // RECEIVE SCRATCH FROM OTHER PLAYER
+      ctx.lineWidth = CONFIG.SCRATCH_RADIUS * 2;
+      ctx.lineCap = 'round';
       ctx.beginPath();
       ctx.arc(data.x, data.y, data.radius, 0, Math.PI * 2);
       ctx.fill();
@@ -622,16 +653,12 @@
       }
     }
 
-    // ===== MINIMIZE WINDOW =====
-    function minimizeWindow() {
-      document.getElementById('gameScreen').style.display = 'none';
-      document.getElementById('minimizedWindow').style.display = 'flex';
-    }
-
-    const minimizedWindow = document.getElementById('minimizedWindow');
-    minimizedWindow.addEventListener('click', () => {
-      document.getElementById('gameScreen').style.display = 'flex';
-      document.getElementById('minimizedWindow').style.display = 'none';
+    // ===== PAGE VISIBILITY - STATUS UPDATE =====
+    document.addEventListener('visibilitychange', () => {
+      isPageActive = !document.hidden;
+      if (currentRoom) {
+        socket.emit('user-visibility', { room: currentRoom, active: isPageActive });
+      }
     });
 
     // ===== EXIT GAME =====
@@ -648,14 +675,9 @@
       creatorName = roomParam;
       currentRole = 'joiner';
       document.getElementById('creatorName').textContent = creatorName;
-      document.getElementById('inviteBtn').style.display = 'none';
+      document.getElementById('inviteBtn').style.display = 'none'; // HIDE INVITE FOR JOINER
       setTimeout(() => joinGame(), 100);
     }
-
-    // ===== BEFORE UNLOAD =====
-    window.addEventListener('beforeunload', () => {
-      if (socket) socket.disconnect();
-    });
   </script>
 </body>
 </html>
