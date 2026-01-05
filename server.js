@@ -1,11 +1,8 @@
- 
-// server.js  (updated – optional additions only)
+// server.js  (bilka-ul-sirf-yehi-file-rakh-aur-deploy-kar)
 const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
 const path = require("path");
-const helmet = require("helmet");          // npm i helmet
-const rateLimit = require("express-rate-limit"); // npm i express-rate-limit
 
 const app = express();
 const server = http.createServer(app);
@@ -16,21 +13,8 @@ const io = new Server(server, {
   }
 });
 
-// ------ tiny security + rate-limit ------
-app.use(helmet({
-  contentSecurityPolicy: false,   // breaks inline styles if true
-}));
-const joinLimiter = rateLimit({
-  windowMs: 1000,                // 1 sec
-  max: 5,                        // 5 join events per IP per second
-  message: { error: "Too many requests, slow down!" },
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-
 app.use(express.static(__dirname));
 app.get("/", (_, res) => res.sendFile(path.join(__dirname, "index.html")));
-app.get("/health", (_, res) => res.status(200).json({ status: "ok" })); // health-check
 
 const dares = [
   "Apni ek cute selfie bhejo", "Sirf emojis me apna mood batao", "Ek honest compliment bhejo",
@@ -39,8 +23,8 @@ const dares = [
   "Ek secret emoji me likho", "Apni playlist ka last song batao", "Ek fun GIF bhejo",
   "Apna current status describe karo", "Ek random memory share karo", "Ek imaginary date idea batao"
 ];
-const rooms = {};
 
+const rooms = {};
 function getRandomDare() { return dares[Math.floor(Math.random() * dares.length)]; }
 
 io.on("connection", socket => {
@@ -48,12 +32,8 @@ io.on("connection", socket => {
 
   socket.on("check-room", room => socket.emit('room-check-result', !!rooms[room]));
 
-  // apply rate-limit on join
-  socket.on("join", joinLimiter, (room) => {
-    if (rooms[room] && rooms[room].joiner) {
-      socket.emit('error', 'Room is full or closed');
-      return;
-    }
+  socket.on("join", room => {
+    if (rooms[room] && rooms[room].joiner) { socket.emit('error', 'Room is full or closed'); return; }
     socket.join(room);
     if (!rooms[room]) {
       rooms[room] = { dare: getRandomDare(), scratched: false, turn: 'creator', creator: socket.id, joiner: null, joinerJoined: false };
