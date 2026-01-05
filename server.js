@@ -1,3 +1,4 @@
+ 
 const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
@@ -86,7 +87,6 @@ io.on("connection", socket => {
 
   socket.on("disconnect", () => {
     console.log("❌ User disconnected:", socket.id);
-    // Room will be cleaned up when creator leaves
   });
 });
 
