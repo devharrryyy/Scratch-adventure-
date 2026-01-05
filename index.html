@@ -1,3 +1,4 @@
+  
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -17,15 +18,20 @@
       overflow: hidden;
     }
     
-    /* Animated background particles */
+    /* Animated background hearts */
     .particles { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: -1; }
-    .particle { position: absolute; width: 10px; height: 10px; background: rgba(255,255,255,0.5); border-radius: 50%; animation: float 6s infinite ease-in-out; }
-    @keyframes float { 0%, 100% { transform: translateY(0px) rotate(0deg); } 50% { transform: translateY(-20px) rotate(180deg); } }
+    .heart-particle { position: absolute; font-size: 14px; animation: float 6s infinite ease-in-out; will-change: transform; opacity: 0.7; }
+    @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-20px); } }
+    
+    /* Loading spinner */
+    .loading { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); display: none; }
+    .spinner { width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.3); border-top: 4px solid #fff; border-radius: 50%; animation: spin 1s linear infinite; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     
     /* Welcome Screen */
     .welcome-screen { text-align: center; animation: fadeIn 1s ease-in; }
     @keyframes fadeIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
-    .main-title { font-size: 4em; margin-bottom: 20px; background: linear-gradient(45deg, #ff6b6b, #ffd93d); -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: glow 2s ease-in-out infinite alternate; }
+    .main-title { font-size: 4em; margin-bottom: 20px; background: linear-gradient(45deg, #ff6b6b, #ffd93d); -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: glow 2s ease-in-out infinite alternate; will-change: filter; }
     @keyframes glow { from { filter: drop-shadow(0 0 10px rgba(255,107,107,0.5)); } to { filter: drop-shadow(0 0 20px rgba(255,217,61,0.8)); } }
     .create-btn { padding: 18px 50px; font-size: 1.2em; background: linear-gradient(45deg, #ff6b6b, #ff8787); border: none; border-radius: 50px; color: white; cursor: pointer; font-weight: bold; box-shadow: 0 10px 30px rgba(255,107,107,0.4); transition: all 0.3s; }
     .create-btn:hover { transform: translateY(-5px); box-shadow: 0 15px 40px rgba(255,107,107,0.6); }
@@ -39,26 +45,26 @@
     
     /* Game Screen */
     .game-screen { display: none; flex-direction: column; align-items: center; justify-content: center; width: 100%; max-width: 600px; }
-    .game-title { font-size: 2.5em; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); color: #000000; } /* ✅ BLACK COLOR ADDED */
+    .game-title { font-size: 2.5em; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); color: #000000; }
     .subtitle { font-size: 1.1em; margin-bottom: 30px; opacity: 0.9; }
     
     .teddy-container { position: relative; width: 100%; max-width: 400px; height: 500px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; }
     
-    .teddy-bear { font-size: 280px; position: relative; z-index: 1; } /* ✅ NO JUMP, Z-INDEX LOWER */
+    .teddy-bear { font-size: 280px; position: relative; z-index: 1; }
     
-    .heart-holder { position: absolute; top: 220px; left: 50%; transform: translateX(-50%); z-index: 2; } /* ✅ IN FRONT OF TEDDY, Z-INDEX HIGHER */
+    .heart-holder { position: absolute; top: 220px; left: 50%; transform: translateX(-50%); z-index: 2; }
     
     .heart-container { position: relative; width: 250px; height: 220px; }
     .heart { position: absolute; width: 100%; height: 100%; background: #ff0000; clip-path: path('M125,40 C125,15 100,0 75,0 C50,0 25,15 25,40 C25,60 75,110 75,110 C75,110 125,60 125,40 Z'); }
-    .heart-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #333; font-weight: bold; font-size: 16px; text-align: center; width: 85%; max-width: 200px; pointer-events: none; padding: 15px; word-wrap: break-word; overflow-wrap: break-word; hyphens: auto; line-height: 1.3; }
+    .heart-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #333; font-weight: bold; font-size: clamp(12px, 2.5vw, 16px); text-align: center; width: 85%; max-width: 200px; pointer-events: none; padding: 15px; word-wrap: break-word; overflow-wrap: break-word; hyphens: auto; line-height: 1.3; }
     
     #scratchCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: crosshair; clip-path: path('M125,40 C125,15 100,0 75,0 C50,0 25,15 25,40 C25,60 75,110 75,110 C75,110 125,60 125,40 Z'); }
     
-    .necklace { position: absolute; top: 140px; left: 50%; transform: translateX(-50%); z-index: 3; }
+    .necklace { position: absolute; top: 140px; left: 50%; transform: translateX(-50%); z-index: 3; display: none; }
     .necklace-chain { width: 60px; height: 40px; border: 3px solid gold; border-bottom: none; border-radius: 30px 30px 0 0; }
     .name-plate { background: gold; padding: 5px 12px; border-radius: 5px; font-size: 12px; color: #333; font-weight: bold; margin-top: -5px; text-align: center; min-width: 80px; }
     
-    .turn-indicator { margin: 20px 0; font-size: 1.2em; font-weight: bold; animation: pulse 1.5s infinite; }
+    .turn-indicator { margin: 20px 0; font-size: 1.2em; font-weight: bold; animation: pulse 1.5s infinite; will-change: opacity; }
     @keyframes pulse { 0% { opacity: 0.7; } 50% { opacity: 1; } 100% { opacity: 0.7; } }
     
     .done-btn { padding: 15px 40px; font-size: 1.1em; background: linear-gradient(45deg, #4CAF50, #66BB6A); border: none; border-radius: 30px; color: white; cursor: pointer; font-weight: bold; margin-top: 30px; animation: slideUp 0.5s ease-out; }
@@ -77,6 +83,11 @@
   </style>
 </head>
 <body>
+  <!-- Loading Spinner -->
+  <div class="loading" id="loading">
+    <div class="spinner"></div>
+  </div>
+
   <!-- Animated Particles -->
   <div class="particles" id="particles"></div>
 
@@ -121,7 +132,7 @@
     <button class="top-btn exit-btn" onclick="showExitConfirm()">❌</button>
     <button class="top-btn invite-btn" id="inviteBtn" onclick="showInvitePopup()">🔗</button>
 
-    <h2 class="game-title">💕 Scratch Adventure</h2> <!-- ✅ BLACK COLOR AUTO APPLY HOGA -->
+    <h2 class="game-title">💕 Scratch Adventure</h2>
     <p class="subtitle">Scratch the field with your finger 💖</p>
     
     <div class="turn-indicator" id="turnIndicator">Waiting for players...</div>
@@ -134,7 +145,7 @@
         <div class="name-plate" id="creatorName">Room</div>
       </div>
       
-      <div class="heart-holder"> <!-- ✅ IN FRONT OF TEDDY -->
+      <div class="heart-holder">
         <div class="heart-container">
           <div class="heart red-layer"></div>
           <canvas id="scratchCanvas"></canvas>
@@ -150,19 +161,32 @@
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
+    // CONFIGURATION
+    const CONFIG = {
+      SCRATCH_THRESHOLD: 0.6,
+      PARTICLE_COUNT: 15,
+      CANVAS_WIDTH: 250,
+      CANVAS_HEIGHT: 220,
+      SCRATCH_RADIUS: 25,
+      PIXEL_SAMPLE_RATE: 40
+    };
+
     const socket = io();
     let currentRole = '';
     let currentRoom = '';
     let hasScratched = false;
     let isMyTurn = false;
     let creatorName = '';
+    let lastEmitTime = 0;
 
-    // Create particles
+    // Create colored heart particles
     function createParticles() {
       const container = document.getElementById('particles');
-      for (let i = 0; i < 20; i++) {
+      const heartEmojis = ['💖', '💗', '💓', '💕', '💘', '❤️', '🧡', '💛', '💚', '💙', '💜'];
+      for (let i = 0; i < CONFIG.PARTICLE_COUNT; i++) {
         const particle = document.createElement('div');
-        particle.className = 'particle';
+        particle.className = 'heart-particle';
+        particle.textContent = heartEmojis[Math.floor(Math.random() * heartEmojis.length)];
         particle.style.left = Math.random() * 100 + '%';
         particle.style.top = Math.random() * 100 + '%';
         particle.style.animationDelay = Math.random() * 6 + 's';
@@ -170,6 +194,10 @@
       }
     }
     createParticles();
+
+    // Loading management
+    function showLoading() { document.getElementById('loading').style.display = 'block'; }
+    function hideLoading() { document.getElementById('loading').style.display = 'none'; }
 
     // Screen management
     function showRoomPopup() {
@@ -179,7 +207,7 @@
       document.getElementById('roomPopup').style.display = 'none';
     }
     function showInvitePopup() {
-      const link = `${window.location.origin}${window.location.pathname}?room=${currentRoom}`;
+      const link = `${window.location.origin}${window.location.pathname}?room=${encodeURIComponent(currentRoom)}`;
       document.getElementById('inviteLink').value = link;
       document.getElementById('invitePopup').style.display = 'flex';
     }
@@ -195,7 +223,10 @@
 
     // Room creation
     function createRoom() {
-      const roomName = document.getElementById('roomNameInput').value.trim();
+      const roomName = document.getElementById('roomNameInput').value.trim()
+        .replace(/[<>\"']/g, '')
+        .substring(0, 20);
+      
       if (roomName) {
         currentRoom = roomName;
         creatorName = roomName;
@@ -209,18 +240,25 @@
     }
 
     function joinGame() {
+      showLoading();
       socket.emit('join', currentRoom);
       document.getElementById('welcomeScreen').classList.add('hidden');
       document.getElementById('gameScreen').style.display = 'flex';
     }
 
     // Invite functionality
-    function copyLink() {
-      const link = document.getElementById('inviteLink');
-      link.select();
-      document.execCommand('copy');
-      alert('📋 Link copied! Share it with your partner!');
-      closeInvitePopup();
+    async function copyLink() {
+      try {
+        const link = document.getElementById('inviteLink');
+        await navigator.clipboard.writeText(link.value);
+        alert('📋 Link copied! Share it with your partner!');
+        closeInvitePopup();
+      } catch (err) {
+        link.select();
+        document.execCommand('copy');
+        alert('📋 Link copied! (Fallback method)');
+        closeInvitePopup();
+      }
     }
 
     // Canvas setup
@@ -229,10 +267,14 @@
     const heartText = document.getElementById('heartText');
 
     function setupCanvas() {
-      canvas.width = 250;
-      canvas.height = 220;
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = CONFIG.CANVAS_WIDTH * dpr;
+      canvas.height = CONFIG.CANVAS_HEIGHT * dpr;
+      canvas.style.width = CONFIG.CANVAS_WIDTH + 'px';
+      canvas.style.height = CONFIG.CANVAS_HEIGHT + 'px';
+      ctx.scale(dpr, dpr);
       ctx.fillStyle = 'rgba(255, 0, 0, 0.95)';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillRect(0, 0, CONFIG.CANVAS_WIDTH, CONFIG.CANVAS_HEIGHT);
       ctx.globalCompositeOperation = 'destination-out';
     }
 
@@ -241,6 +283,7 @@
       currentRole = role;
       isMyTurn = (role === 'creator');
       updateTurnIndicator();
+      hideLoading();
     });
 
     socket.on('state', (state) => {
@@ -304,15 +347,16 @@
 
     function draw(e) {
       if (!isDrawing || !isMyTurn) return;
+      
+      const now = Date.now();
+      if (now - lastEmitTime < 16) return; // Debounce to ~60fps
+      lastEmitTime = now;
+
       const rect = canvas.getBoundingClientRect();
-      const x = ((e.clientX || e.touches[0].clientX) - rect.left) * (canvas.width / rect.width);
-      const y = ((e.clientY || e.touches[0].clientY) - rect.top) * (canvas.height / rect.height);
+      const x = ((e.clientX || e.touches[0].clientX) - rect.left) * (CONFIG.CANVAS_WIDTH / rect.width);
+      const y = ((e.clientY || e.touches[0].clientY) - rect.top) * (CONFIG.CANVAS_HEIGHT / rect.height);
       
-      ctx.beginPath();
-      ctx.arc(x, y, 25, 0, Math.PI * 2);
-      ctx.fill();
-      
-      socket.emit('scratch', { room: currentRoom, x, y, radius: 25 });
+      socket.emit('scratch', { room: currentRoom, x, y, radius: CONFIG.SCRATCH_RADIUS });
     }
 
     socket.on('scratch', (data) => {
@@ -322,15 +366,23 @@
     });
 
     function checkScratchComplete() {
-      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const pixels = imageData.data;
-      let transparent = 0;
-      for (let i = 3; i < pixels.length; i += 4) {
-        if (pixels[i] < 128) transparent++;
-      }
-      if (transparent > (pixels.length / 4) * 0.6) {
-        hasScratched = true;
-        socket.emit('scratch-complete', currentRoom);
+      try {
+        const imageData = ctx.getImageData(0, 0, CONFIG.CANVAS_WIDTH, CONFIG.CANVAS_HEIGHT);
+        const pixels = imageData.data;
+        let transparent = 0;
+        
+        // Sample every 10th pixel for performance
+        for (let i = 3; i < pixels.length; i += CONFIG.PIXEL_SAMPLE_RATE) {
+          if (pixels[i] < 128) transparent++;
+        }
+        
+        const threshold = (pixels.length / CONFIG.PIXEL_SAMPLE_RATE) * CONFIG.SCRATCH_THRESHOLD;
+        if (transparent > threshold) {
+          hasScratched = true;
+          socket.emit('scratch-complete', currentRoom);
+        }
+      } catch (err) {
+        console.error('Error checking scratch progress:', err);
       }
     }
 
@@ -344,15 +396,16 @@
 
     // Exit game
     function exitGame() {
+      socket.disconnect();
       location.reload();
     }
 
-    // ✅ PHONE BACK BUTTON CONFIRMATION - ADDED NOW
+    // Phone back button confirmation
     window.addEventListener('beforeunload', (e) => {
       if (document.getElementById('gameScreen').style.display === 'flex') {
         e.preventDefault();
         e.returnValue = '';
-        return '';
+        socket.disconnect();
       }
     });
 
@@ -368,7 +421,6 @@
       document.getElementById('creatorName').textContent = creatorName;
       setTimeout(() => joinGame(), 100);
     } else {
-      // Hide necklace only if NOT auto-joining
       document.getElementById('necklace').style.display = 'none';
     }
   </script>
