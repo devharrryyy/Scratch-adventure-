@@ -37,9 +37,16 @@ io.on("connection", socket => {
   console.log("✅ User connected:", socket.id);
 
   socket.on("join", (room) => {
+    // CHECK IF ROOM EXISTS AND IS FULL
+    if (rooms[room] && rooms[room].joiner) {
+      socket.emit('error', 'Room is full or closed');
+      return;
+    }
+    
     socket.join(room);
     
     if (!rooms[room]) {
+      // CREATE NEW ROOM
       rooms[room] = {
         dare: getRandomDare(),
         scratched: false,
@@ -50,15 +57,11 @@ io.on("connection", socket => {
       };
       socket.emit('role', 'creator');
     } else {
-      if (!rooms[room].joiner) {
-        rooms[room].joiner = socket.id;
-        rooms[room].joinerJoined = true;
-        socket.emit('role', 'joiner');
-        socket.to(room).emit('joiner-joined');
-      } else {
-        socket.emit('error', 'Room is full');
-        return;
-      }
+      // JOIN EXISTING ROOM
+      rooms[room].joiner = socket.id;
+      rooms[room].joinerJoined = true;
+      socket.emit('role', 'joiner');
+      socket.to(room).emit('joiner-joined');
     }
 
     socket.emit("state", rooms[room]);
@@ -85,8 +88,29 @@ io.on("connection", socket => {
     });
   });
 
+  socket.on("user-active", (data) => {
+    if (rooms[data.room]) {
+      socket.to(data.room).emit("user-active-status", { active: data.active });
+    }
+  });
+
   socket.on("disconnect", () => {
     console.log("❌ User disconnected:", socket.id);
+    
+    // FIND AND CLEANUP ROOM
+    for (const room in rooms) {
+      if (rooms[room].creator === socket.id) {
+        // CREATOR LEFT - DELETE ROOM
+        io.to(room).emit('room-closed');
+        delete rooms[room];
+        console.log(`🗑️ Room ${room} deleted`);
+      } else if (rooms[room].joiner === socket.id) {
+        // JOINER LEFT - REMOVE JOINER
+        rooms[room].joiner = null;
+        rooms[room].joinerJoined = false;
+        io.to(room).emit('joiner-left');
+      }
+    }
   });
 });
 
