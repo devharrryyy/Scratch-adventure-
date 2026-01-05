@@ -14,7 +14,7 @@
       color: #fff;
     }
 
-    /* ===== WELCOME SCREEN (UNCHANGED) ===== */
+    /* ===== WELCOME SCREEN ===== */
     .welcome-screen { 
       display: flex; 
       flex-direction: column;
@@ -64,7 +64,7 @@
     /* Complete Button */
     .complete-btn { padding: 15px 40px; font-size: 1.1em; background: linear-gradient(45deg, #4CAF50, #66BB6A); border: none; border-radius: 30px; color: white; cursor: pointer; font-weight: bold; margin: 20px 0; transition: all 0.3s; }
     .complete-btn:hover { transform: scale(1.05); box-shadow: 0 8px 25px rgba(76,175,80,0.4); }
-    .complete-btn:disabled { background: #ccc; cursor: not-allowed; transform: scale(1); }
+    .complete-btn:disabled { background: #ccc !important; cursor: not-allowed !important; transform: scale(1) !important; }
 
     /* Bottom Bar */
     .bottom-bar { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: rgba(0,0,0,0.1); }
@@ -73,33 +73,36 @@
     .creator-info { color: #333; font-size: 0.9em; }
     .minimize-btn { background: none; border: none; font-size: 25px; cursor: pointer; color: #333; }
 
-    /* Minimized Window */
-    .minimized { position: fixed; width: 150px; height: 80px; bottom: 20px; right: 20px; background: white; border-radius: 10px; box-shadow: 0 5px 20px rgba(0,0,0,0.3); cursor: move; display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 999; }
-    .minimized-title { font-size: 12px; font-weight: bold; color: #333; }
-    .minimized-turn { font-size: 10px; color: #666; }
-
-    /* Joiner Status */
+    /* ===== STATUS INDICATORS ===== */
     .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-left: 5px; }
     .status-online { background: #4CAF50; animation: blink 1.5s infinite; }
     .status-offline { background: #ccc; }
     @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
 
-    /* Waiting State */
-    .waiting-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 2000; }
-    .waiting-box { background: white; padding: 30px; border-radius: 20px; text-align: center; color: #333; }
-    .waiting-box p { margin: 10px 0; font-size: 1.1em; }
+    /* ===== DISABLED STATE ===== */
+    .disabled { opacity: 0.5; pointer-events: none; }
 
-    /* Animations */
+    /* ===== MINIMIZED WINDOW (NO DRAG) ===== */
+    .minimized { position: fixed; width: 150px; height: 80px; bottom: 20px; right: 20px; background: white; border-radius: 10px; box-shadow: 0 5px 20px rgba(0,0,0,0.3); cursor: pointer; display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 999; }
+    .minimized-title { font-size: 12px; font-weight: bold; color: #333; }
+    .minimized-turn { font-size: 10px; color: #666; }
+
+    /* ===== ANIMATIONS ===== */
     @keyframes fadeIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
     .hidden { display: none !important; }
+
+    /* ===== PHONE BACK BUTTON ===== */
+    @media (max-width: 600px) {
+      .dare-box { width: 90%; max-width: 350px; }
+    }
   </style>
 </head>
 <body>
-  <!-- ===== POPUPS ===== -->
+  <!-- ===== POPUPS (ONLY 3) ===== -->
   <div class="popup-overlay" id="exitConfirm">
     <div class="popup">
       <h3>❌ Exit Game?</h3>
-      <p>Are you sure you want to leave the room?</p>
+      <p>Are you sure you want to leave?</p>
       <button onclick="exitGame()">Confirm</button>
       <button onclick="closeExitPopup()">Cancel</button>
     </div>
@@ -123,15 +126,6 @@
     </div>
   </div>
 
-  <!-- ===== WAITING STATE ===== -->
-  <div class="waiting-overlay" id="waitingOverlay">
-    <div class="waiting-box">
-      <h3>⏳ Waiting for Partner</h3>
-      <p>Share the invite link with your friend</p>
-      <p id="waitingStatus">Status: Room Created</p>
-    </div>
-  </div>
-
   <!-- ===== WELCOME SCREEN ===== -->
   <div class="welcome-screen" id="welcomeScreen">
     <h1 class="main-title">💕 Scratch Adventure 💕</h1>
@@ -151,11 +145,11 @@
       <h2 class="game-title">💕 Scratch Adventure</h2>
       <p class="instruction">Scratch the field with your finger</p>
       
-      <div class="turn-indicator" id="turnIndicator">Waiting for players...</div>
+      <div class="turn-indicator" id="turnIndicator">Waiting for partner to join...</div>
       
       <div class="name-plate" id="creatorName">Room</div>
       
-      <div class="dare-box">
+      <div class="dare-box" id="dareBox">
         <canvas id="scratchCanvas"></canvas>
         <div class="dare-text" id="dareText">♥️ Scratch to reveal!</div>
       </div>
@@ -175,21 +169,20 @@
   </div>
 
   <!-- ===== MINIMIZED WINDOW ===== -->
-  <div class="minimized" id="minimizedWindow" draggable="true">
+  <div class="minimized" id="minimizedWindow">
     <div class="minimized-title">Scratch Game</div>
     <div class="minimized-turn" id="minimizedTurn">Waiting...</div>
   </div>
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
-    // ===== CONFIGURATION =====
+    // ===== CONFIG =====
     const CONFIG = {
       SCRATCH_THRESHOLD: 0.6,
       CANVAS_WIDTH: 350,
       CANVAS_HEIGHT: 120,
       SCRATCH_RADIUS: 25,
-      PIXEL_SAMPLE_RATE: 40,
-      MIN_SCRATCH_PERCENT: 60
+      PIXEL_SAMPLE_RATE: 40
     };
 
     const socket = io();
@@ -201,7 +194,7 @@
     let joinerJoined = false;
     let lastEmitTime = 0;
 
-    // ===== POPUP MANAGEMENT =====
+    // ===== POPUP FUNCTIONS =====
     function showRoomPopup() { document.getElementById('roomPopup').style.display = 'flex'; }
     function closeRoomPopup() { document.getElementById('roomPopup').style.display = 'none'; }
     function showInvitePopup() {
@@ -229,15 +222,12 @@
     function joinGame() {
       document.getElementById('welcomeScreen').classList.add('hidden');
       document.getElementById('gameScreen').style.display = 'flex';
-      if (currentRole === 'creator') {
-        document.getElementById('inviteBtn').style.display = 'block';
-        document.getElementById('waitingOverlay').style.display = 'flex';
-      }
+      document.getElementById('inviteBtn').style.display = 'block';
       setupCanvas();
       socket.emit('join', currentRoom);
     }
 
-    // ===== INVITE LINK =====
+    // ===== INVITE COPY =====
     async function copyLink() {
       try {
         const link = document.getElementById('inviteLink');
@@ -247,7 +237,7 @@
       } catch {
         link.select();
         document.execCommand('copy');
-        alert('📋 Link copied! (Fallback method)');
+        alert('📋 Link copied!');
         closeInvitePopup();
       }
     }
@@ -272,18 +262,15 @@
     socket.on('role', (role) => {
       currentRole = role;
       isMyTurn = (role === 'creator');
-      updateTurnIndicator();
+      updateUI();
     });
 
     socket.on('state', (state) => {
       joinerJoined = state.joinerJoined;
       hasScratched = state.scratched;
       document.getElementById('dareText').textContent = state.scratched ? state.dare : '♥️ Scratch to reveal!';
-      if (currentRole === 'creator' && joinerJoined) {
-        document.getElementById('waitingOverlay').style.display = 'none';
-      }
-      updateTurnIndicator();
-      updateJoinerStatus();
+      
+      updateUI();
       
       if (!state.scratched) {
         setupCanvas();
@@ -295,8 +282,7 @@
 
     socket.on('joiner-joined', () => {
       joinerJoined = true;
-      document.getElementById('waitingOverlay').style.display = 'none';
-      updateJoinerStatus();
+      updateUI();
     });
 
     socket.on('new-turn', (data) => {
@@ -305,62 +291,87 @@
       document.getElementById('completeBtn').classList.add('hidden');
       setupCanvas();
       isMyTurn = (currentRole === data.turn);
-      updateTurnIndicator();
+      updateUI();
     });
 
     socket.on('reveal', (dare) => {
       document.getElementById('dareText').textContent = dare;
       document.getElementById('completeBtn').classList.remove('hidden');
       hasScratched = true;
-      updateTurnIndicator();
+      updateUI();
     });
 
-    // ===== TURN & STATUS =====
-    function updateTurnIndicator() {
+    // ===== UPDATE UI =====
+    function updateUI() {
       const indicator = document.getElementById('turnIndicator');
-      const miniIndicator = document.getElementById('minimizedTurn');
-      let text = '';
+      const dareBox = document.getElementById('dareBox');
+      const completeBtn = document.getElementById('completeBtn');
       
+      // Update joiner status
+      const statusDot = document.querySelector('#joinerStatus .status-dot');
+      statusDot.className = joinerJoined ? 'status-dot status-online' : 'status-dot status-offline';
+      
+      // Update turn indicator
       if (!joinerJoined) {
-        text = '⏳ Waiting for partner to join...';
+        indicator.textContent = '⏳ Waiting for partner to join...';
+        dareBox.classList.add('disabled');
+        completeBtn.disabled = true;
+        completeBtn.classList.add('disabled');
       } else if (isMyTurn && !hasScratched) {
-        text = '✨ Your turn! Scratch to reveal';
+        indicator.textContent = '✨ Your turn! Scratch to reveal';
+        dareBox.classList.remove('disabled');
+        completeBtn.disabled = true;
+        completeBtn.classList.add('disabled');
       } else if (!isMyTurn && !hasScratched) {
-        text = '⏳ Waiting for partner to scratch...';
+        indicator.textContent = '⏳ Waiting for partner to scratch...';
+        dareBox.classList.add('disabled');
+        completeBtn.disabled = true;
+        completeBtn.classList.add('disabled');
       } else if (hasScratched) {
-        text = '💖 Dare revealed! Tap "Dare Completed"';
+        indicator.textContent = '💖 Dare revealed! Tap "Dare Completed"';
+        dareBox.classList.remove('disabled');
+        completeBtn.disabled = false;
+        completeBtn.classList.remove('disabled');
       }
-      
-      indicator.textContent = text;
-      miniIndicator.textContent = text.substring(0, 20) + '...';
-    }
-
-    function updateJoinerStatus() {
-      const status = document.querySelector('#joinerStatus .status-dot');
-      status.className = joinerJoined ? 'status-dot status-online' : 'status-dot status-offline';
     }
 
     // ===== DARE COMPLETION =====
     function completeDare() {
-      if (!hasScratched) return;
+      if (!hasScratched || !joinerJoined) return;
       socket.emit('done', currentRoom);
       document.getElementById('completeBtn').classList.add('hidden');
       hasScratched = false;
       setupCanvas();
+      updateUI();
     }
 
     // ===== SCRATCHING LOGIC =====
     let isDrawing = false;
 
-    canvas.addEventListener('mousedown', () => { if (isMyTurn && joinerJoined) isDrawing = true; });
-    canvas.addEventListener('mouseup', () => { if (isMyTurn) { isDrawing = false; checkScratchComplete(); } });
+    canvas.addEventListener('mousedown', () => { 
+      if (isMyTurn && joinerJoined && !hasScratched) isDrawing = true; 
+    });
+    canvas.addEventListener('mouseup', () => { 
+      if (isMyTurn) { 
+        isDrawing = false; 
+        checkScratchComplete(); 
+      } 
+    });
     canvas.addEventListener('mousemove', draw);
-    canvas.addEventListener('touchstart', (e) => { e.preventDefault(); if (isMyTurn && joinerJoined) isDrawing = true; });
-    canvas.addEventListener('touchend', () => { if (isMyTurn) { isDrawing = false; checkScratchComplete(); } });
+    canvas.addEventListener('touchstart', (e) => { 
+      e.preventDefault(); 
+      if (isMyTurn && joinerJoined && !hasScratched) isDrawing = true; 
+    });
+    canvas.addEventListener('touchend', () => { 
+      if (isMyTurn) { 
+        isDrawing = false; 
+        checkScratchComplete(); 
+      } 
+    });
     canvas.addEventListener('touchmove', draw);
 
     function draw(e) {
-      if (!isDrawing || !isMyTurn || !joinerJoined) return;
+      if (!isDrawing || !isMyTurn || !joinerJoined || hasScratched) return;
       
       const now = Date.now();
       if (now - lastEmitTime < 16) return;
@@ -405,23 +416,6 @@
     }
 
     const minimizedWindow = document.getElementById('minimizedWindow');
-    let isDragging = false;
-    let dragOffset = { x: 0, y: 0 };
-
-    minimizedWindow.addEventListener('mousedown', (e) => {
-      isDragging = true;
-      dragOffset.x = e.clientX - minimizedWindow.offsetLeft;
-      dragOffset.y = e.clientY - minimizedWindow.offsetTop;
-    });
-
-    document.addEventListener('mousemove', (e) => {
-      if (!isDragging) return;
-      minimizedWindow.style.left = (e.clientX - dragOffset.x) + 'px';
-      minimizedWindow.style.top = (e.clientY - dragOffset.y) + 'px';
-    });
-
-    document.addEventListener('mouseup', () => { isDragging = false; });
-
     minimizedWindow.addEventListener('click', () => {
       document.getElementById('gameScreen').style.display = 'flex';
       document.getElementById('minimizedWindow').style.display = 'none';
@@ -441,6 +435,7 @@
       creatorName = roomParam;
       currentRole = 'joiner';
       document.getElementById('creatorName').textContent = creatorName;
+      document.getElementById('inviteBtn').style.display = 'none';
       setTimeout(() => joinGame(), 100);
     }
 
