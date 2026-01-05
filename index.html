@@ -1,119 +1,301 @@
+ 
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Scratch Adventure</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scratch Adventure 💕</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #fff; }
-    .container { background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border-radius: 20px; padding: 30px; text-align: center; max-width: 400px; width: 90%; box-shadow: 0 8px 32px rgba(0,0,0,0.1); }
-    h1 { margin-bottom: 20px; font-size: 2em; }
-    .invite-icon { position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.2); border: none; border-radius: 50%; width: 50px; height: 50px; font-size: 24px; cursor: pointer; color: white; }
-    .scratch-container { position: relative; width: 300px; height: 150px; margin: 20px auto; border-radius: 15px; overflow: hidden; }
-    #scratchCanvas { position: absolute; top: 0; left: 0; cursor: crosshair; background: transparent; }
-    #dareText { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 18px; font-weight: bold; color: #333; text-align: center; width: 90%; }
-    .room-input { margin: 20px 0; }
-    input { padding: 12px; border: none; border-radius: 25px; width: 200px; margin: 0 5px; text-align: center; }
-    button { padding: 12px 24px; border: none; border-radius: 25px; background: #ff6b6b; color: white; cursor: pointer; font-weight: bold; margin: 5px; }
-    button:hover { background: #ff5252; }
-    .hidden { display: none; }
+    body { 
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+      background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%);
+      min-height: 100vh; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      color: #fff; 
+      overflow: hidden;
+    }
+    
+    /* Animated background particles */
+    .particles { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: -1; }
+    .particle { position: absolute; width: 10px; height: 10px; background: rgba(255,255,255,0.5); border-radius: 50%; animation: float 6s infinite ease-in-out; }
+    @keyframes float { 0%, 100% { transform: translateY(0px) rotate(0deg); } 50% { transform: translateY(-20px) rotate(180deg); } }
+    
+    /* Welcome Screen */
+    .welcome-screen { text-align: center; animation: fadeIn 1s ease-in; }
+    @keyframes fadeIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
+    .main-title { font-size: 4em; margin-bottom: 20px; background: linear-gradient(45deg, #ff6b6b, #ffd93d); -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: glow 2s ease-in-out infinite alternate; }
+    @keyframes glow { from { filter: drop-shadow(0 0 10px rgba(255,107,107,0.5)); } to { filter: drop-shadow(0 0 20px rgba(255,217,61,0.8)); } }
+    .create-btn { padding: 18px 50px; font-size: 1.2em; background: linear-gradient(45deg, #ff6b6b, #ff8787); border: none; border-radius: 50px; color: white; cursor: pointer; font-weight: bold; box-shadow: 0 10px 30px rgba(255,107,107,0.4); transition: all 0.3s; }
+    .create-btn:hover { transform: translateY(-5px); box-shadow: 0 15px 40px rgba(255,107,107,0.6); }
+    
+    /* Popup */
+    .popup-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 1000; }
+    .popup { background: white; padding: 30px; border-radius: 20px; text-align: center; color: #333; animation: popIn 0.3s ease-out; }
+    @keyframes popIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .popup input { padding: 12px; border: 2px solid #ff6b6b; border-radius: 25px; width: 100%; margin: 15px 0; }
+    .popup button { padding: 12px 30px; margin: 5px; }
+    
+    /* Game Screen */
+    .game-screen { display: none; flex-direction: column; align-items: center; justify-content: center; width: 100%; max-width: 500px; }
+    .game-title { font-size: 2.5em; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); }
+    .subtitle { font-size: 1.1em; margin-bottom: 30px; opacity: 0.9; }
+    
+    .teddy-container { position: relative; width: 350px; height: 400px; }
+    .teddy-bear { position: absolute; font-size: 200px; bottom: 0; left: 50%; transform: translateX(-50%); animation: bounce 2s infinite; }
+    @keyframes bounce { 0%, 20%, 50%, 80%, 100% { transform: translateX(-50%) translateY(0); } 40% { transform: translateX(-50%) translateY(-10px); } 60% { transform: translateX(-50%) translateY(-5px); } }
+    
+    .heart-container { position: absolute; top: 50px; left: 50%; transform: translateX(-50%); width: 250px; height: 220px; }
+    .heart { position: absolute; width: 100%; height: 100%; background: #ff6b6b; clip-path: path('M150,80 C150,30 120,0 75,0 C30,0 0,30 0,80 C0,120 75,200 75,200 C75,200 150,120 150,80 Z'); }
+    .heart-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #333; font-weight: bold; font-size: 14px; text-align: center; width: 80%; max-width: 200px; pointer-events: none; padding: 20px; }
+    
+    #scratchCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: crosshair; clip-path: path('M150,80 C150,30 120,0 75,0 C30,0 0,30 0,80 C0,120 75,200 75,200 C75,200 150,120 150,80 Z'); }
+    
+    .turn-indicator { margin: 20px 0; font-size: 1.2em; font-weight: bold; animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0% { opacity: 0.7; } 50% { opacity: 1; } 100% { opacity: 0.7; } }
+    
+    .done-btn { padding: 15px 40px; font-size: 1.1em; background: linear-gradient(45deg, #4CAF50, #66BB6A); border: none; border-radius: 30px; color: white; cursor: pointer; font-weight: bold; margin-top: 30px; animation: slideUp 0.5s ease-out; }
+    @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    .done-btn:hover { transform: scale(1.05); }
+    .done-btn:disabled { background: #ccc; cursor: not-allowed; transform: scale(1); }
+    
+    .creator-info { position: fixed; bottom: 20px; color: #333; font-size: 0.9em; text-align: center; width: 100%; }
+    
+    /* Buttons */
+    .top-btn { position: fixed; top: 20px; background: rgba(255,255,255,0.2); border: none; border-radius: 50%; width: 50px; height: 50px; font-size: 20px; cursor: pointer; color: white; backdrop-filter: blur(10px); }
+    .exit-btn { left: 20px; }
+    .invite-btn { right: 20px; display: none; }
+    
+    .hidden { display: none !important; }
   </style>
 </head>
 <body>
-  <button class="invite-icon" onclick="copyInviteLink()" title="Copy Invite Link">🔗</button>
-  
-  <div class="container">
-    <h1>💖 Scratch Adventure</h1>
+  <!-- Animated Particles -->
+  <div class="particles" id="particles"></div>
+
+  <!-- Exit Confirmation Popup -->
+  <div class="popup-overlay" id="exitConfirm">
+    <div class="popup">
+      <h3>Exit Game?</h3>
+      <p>Are you sure you want to leave?</p>
+      <button onclick="exitGame()">Confirm</button>
+      <button onclick="closeExitPopup()">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Room Name Popup -->
+  <div class="popup-overlay" id="roomPopup">
+    <div class="popup">
+      <h3>🎮 Create Room</h3>
+      <input type="text" id="roomNameInput" placeholder="Enter room name..." maxlength="20">
+      <button onclick="createRoom()">Create</button>
+      <button onclick="closeRoomPopup()">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Invite Link Popup -->
+  <div class="popup-overlay" id="invitePopup">
+    <div class="popup">
+      <h3>🔗 Invite Friend</h3>
+      <input type="text" id="inviteLink" readonly>
+      <button onclick="copyLink()">Copy Link</button>
+      <button onclick="closeInvitePopup()">Close</button>
+    </div>
+  </div>
+
+  <!-- Welcome Screen -->
+  <div class="welcome-screen" id="welcomeScreen">
+    <h1 class="main-title">💕 Scratch Adventure 💕</h1>
+    <button class="create-btn" onclick="showRoomPopup()">Create Room</button>
+  </div>
+
+  <!-- Game Screen -->
+  <div class="game-screen" id="gameScreen">
+    <button class="top-btn exit-btn" onclick="showExitConfirm()">❌</button>
+    <button class="top-btn invite-btn" id="inviteBtn" onclick="showInvitePopup()">🔗</button>
+
+    <h2 class="game-title">💕 Scratch Adventure</h2>
+    <p class="subtitle">Scratch the field with your finger 💖</p>
     
-    <div id="roomSetup">
-      <div class="room-input">
-        <input type="text" id="roomInput" placeholder="Enter room name" />
-        <button onclick="joinRoom()">Join Room</button>
+    <div class="turn-indicator" id="turnIndicator">Waiting for players...</div>
+
+    <div class="teddy-container">
+      <div class="teddy-bear">🧸</div>
+      <div class="heart-container">
+        <div class="heart red-layer"></div>
+        <canvas id="scratchCanvas"></canvas>
+        <div class="heart-text" id="heartText">Loading dare...</div>
       </div>
     </div>
 
-    <div id="gameArea" class="hidden">
-      <div class="scratch-container">
-        <div id="dareText"></div>
-        <canvas id="scratchCanvas"></canvas>
-      </div>
-      <button onclick="newRound()">New Round</button>
-    </div>
+    <button class="done-btn hidden" id="doneBtn" onclick="markDone()">✨ Done ✨</button>
+    
+    <div class="creator-info">Created by urluv_herrryyy</div>
   </div>
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
     const socket = io();
+    let currentRole = '';
     let currentRoom = '';
+    let hasScratched = false;
+    let isMyTurn = false;
+
+    // Create particles
+    function createParticles() {
+      const container = document.getElementById('particles');
+      for (let i = 0; i < 20; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        particle.style.left = Math.random() * 100 + '%';
+        particle.style.top = Math.random() * 100 + '%';
+        particle.style.animationDelay = Math.random() * 6 + 's';
+        container.appendChild(particle);
+      }
+    }
+    createParticles();
+
+    // Screen management
+    function showRoomPopup() {
+      document.getElementById('roomPopup').style.display = 'flex';
+    }
+    function closeRoomPopup() {
+      document.getElementById('roomPopup').style.display = 'none';
+    }
+    function showInvitePopup() {
+      const link = `${window.location.origin}${window.location.pathname}?room=${currentRoom}`;
+      document.getElementById('inviteLink').value = link;
+      document.getElementById('invitePopup').style.display = 'flex';
+    }
+    function closeInvitePopup() {
+      document.getElementById('invitePopup').style.display = 'none';
+    }
+    function showExitConfirm() {
+      document.getElementById('exitConfirm').style.display = 'flex';
+    }
+    function closeExitPopup() {
+      document.getElementById('exitConfirm').style.display = 'none';
+    }
+
+    // Room creation
+    function createRoom() {
+      const roomName = document.getElementById('roomNameInput').value.trim();
+      if (roomName) {
+        currentRoom = roomName;
+        currentRole = 'creator';
+        document.getElementById('inviteBtn').style.display = 'block';
+        joinGame();
+        closeRoomPopup();
+      }
+    }
+
+    function joinGame() {
+      socket.emit('join', currentRoom);
+      document.getElementById('welcomeScreen').classList.add('hidden');
+      document.getElementById('gameScreen').style.display = 'flex';
+    }
+
+    // Invite functionality
+    function copyLink() {
+      const link = document.getElementById('inviteLink');
+      link.select();
+      document.execCommand('copy');
+      alert('📋 Link copied! Share it with your partner!');
+      closeInvitePopup();
+    }
+
+    // Canvas setup
     const canvas = document.getElementById('scratchCanvas');
     const ctx = canvas.getContext('2d');
-    const dareText = document.getElementById('dareText');
-    let isDrawing = false;
+    const heartText = document.getElementById('heartText');
 
     function setupCanvas() {
-      const container = canvas.parentElement;
-      canvas.width = container.offsetWidth;
-      canvas.height = container.offsetHeight;
-      
-      ctx.fillStyle = '#ddd';
+      canvas.width = 250;
+      canvas.height = 220;
+      ctx.fillStyle = 'rgba(255, 107, 107, 0.9)';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.globalCompositeOperation = 'destination-out';
     }
 
-    function joinRoom() {
-      const room = document.getElementById('roomInput').value.trim();
-      if (room) {
-        currentRoom = room;
-        socket.emit('join', room);
-        document.getElementById('roomSetup').classList.add('hidden');
-        document.getElementById('gameArea').classList.remove('hidden');
-        setupCanvas();
-      }
-    }
-
-    function copyInviteLink() {
-      const url = new URL(window.location.href);
-      url.searchParams.set('room', currentRoom || 'newroom');
-      navigator.clipboard.writeText(url.toString());
-      alert('Invite link copied to clipboard!');
-    }
+    // Socket events
+    socket.on('role', (role) => {
+      currentRole = role;
+      isMyTurn = (role === 'creator');
+      updateTurnIndicator();
+    });
 
     socket.on('state', (state) => {
-      dareText.textContent = state.scratched ? state.dare : 'Scratch to reveal!';
+      heartText.textContent = state.scratched ? state.dare : '♥️ Scratch to reveal!';
       if (!state.scratched) {
+        hasScratched = false;
         setupCanvas();
+        document.getElementById('doneBtn').classList.add('hidden');
       }
+      updateTurnIndicator();
+    });
+
+    socket.on('new-turn', (data) => {
+      heartText.textContent = '♥️ Scratch to reveal!';
+      hasScratched = false;
+      setupCanvas();
+      document.getElementById('doneBtn').classList.add('hidden');
+      isMyTurn = (currentRole === data.turn);
+      updateTurnIndicator();
     });
 
     socket.on('reveal', (dare) => {
-      dareText.textContent = dare;
+      heartText.textContent = dare;
+      document.getElementById('doneBtn').classList.remove('hidden');
+      updateTurnIndicator();
     });
 
-    canvas.addEventListener('mousedown', () => isDrawing = true);
+    function updateTurnIndicator() {
+      const indicator = document.getElementById('turnIndicator');
+      if (isMyTurn && !hasScratched) {
+        indicator.textContent = '✨ Your turn! Scratch the heart';
+        indicator.style.color = '#4CAF50';
+      } else if (!isMyTurn && !hasScratched) {
+        indicator.textContent = '⏳ Waiting for partner...';
+        indicator.style.color = '#ff9800';
+      } else if (hasScratched) {
+        indicator.textContent = '💖 Dare revealed on both screens!';
+        indicator.style.color = '#ff6b6b';
+      }
+    }
+
+    // Scratching logic
+    let isDrawing = false;
+
+    canvas.addEventListener('mousedown', () => { if (isMyTurn) isDrawing = true; });
     canvas.addEventListener('mouseup', () => {
-      isDrawing = false;
-      checkScratchComplete();
+      if (isMyTurn) {
+        isDrawing = false;
+        checkScratchComplete();
+      }
     });
     canvas.addEventListener('mousemove', draw);
-    canvas.addEventListener('touchstart', () => isDrawing = true);
+    canvas.addEventListener('touchstart', (e) => { e.preventDefault(); if (isMyTurn) isDrawing = true; });
     canvas.addEventListener('touchend', () => {
-      isDrawing = false;
-      checkScratchComplete();
+      if (isMyTurn) {
+        isDrawing = false;
+        checkScratchComplete();
+      }
     });
     canvas.addEventListener('touchmove', draw);
 
     function draw(e) {
-      if (!isDrawing) return;
+      if (!isDrawing || !isMyTurn) return;
       const rect = canvas.getBoundingClientRect();
-      const x = (e.clientX || e.touches[0].clientX) - rect.left;
-      const y = (e.clientY || e.touches[0].clientY) - rect.top;
+      const x = ((e.clientX || e.touches[0].clientX) - rect.left) * (canvas.width / rect.width);
+      const y = ((e.clientY || e.touches[0].clientY) - rect.top) * (canvas.height / rect.height);
       
       ctx.beginPath();
-      ctx.arc(x, y, 20, 0, Math.PI * 2);
+      ctx.arc(x, y, 25, 0, Math.PI * 2);
       ctx.fill();
       
-      socket.emit('scratch', { room: currentRoom, x, y, radius: 20 });
+      socket.emit('scratch', { room: currentRoom, x, y, radius: 25 });
     }
 
     socket.on('scratch', (data) => {
@@ -127,23 +309,35 @@
       const pixels = imageData.data;
       let transparent = 0;
       for (let i = 3; i < pixels.length; i += 4) {
-        if (pixels[i] === 0) transparent++;
+        if (pixels[i] < 128) transparent++;
       }
-      if (transparent > (pixels.length / 4) * 0.5) {
+      if (transparent > (pixels.length / 4) * 0.6) {
+        hasScratched = true;
         socket.emit('scratch-complete', currentRoom);
       }
     }
 
-    function newRound() {
-      socket.emit('new-round', currentRoom);
+    // Done button
+    function markDone() {
+      socket.emit('done', currentRoom);
+      isMyTurn = !isMyTurn;
+      document.getElementById('doneBtn').classList.add('hidden');
+      updateTurnIndicator();
+    }
+
+    // Exit game
+    function exitGame() {
+      location.reload();
     }
 
     // Auto-join from URL
     const urlParams = new URLSearchParams(window.location.search);
     const roomParam = urlParams.get('room');
     if (roomParam) {
-      document.getElementById('roomInput').value = roomParam;
-      setTimeout(() => joinRoom(), 100);
+      currentRoom = roomParam;
+      currentRole = 'joiner';
+      document.getElementById('inviteBtn').style.display = 'none';
+      joinGame();
     }
   </script>
 </body>
