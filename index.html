@@ -1,3 +1,4 @@
+  
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -15,7 +16,70 @@
       justify-content: center; 
       color: #fff; 
       overflow: hidden;
+      transition: all 0.3s ease;
     }
+    
+    /* Minimized window state */
+    body.minimized {
+      position: fixed;
+      width: 300px;
+      height: 200px;
+      right: 20px;
+      bottom: 20px;
+      border-radius: 15px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      cursor: move;
+    }
+    
+    body.minimized .teddy-container { transform: scale(0.4); }
+    body.minimized .main-title { font-size: 1.5em; }
+    body.minimized .game-title { font-size: 1.2em; }
+    body.minimized .subtitle { font-size: 0.8em; }
+    body.minimized .heart-holder { transform: scale(0.5) translateX(-50%); }
+    body.minimized .done-btn { padding: 8px 20px; font-size: 0.9em; }
+    body.minimized .turn-indicator { font-size: 0.9em; }
+    
+    /* Minimize button */
+    .minimize-btn {
+      position: fixed;
+      top: 20px;
+      right: 80px;
+      background: rgba(255,255,255,0.2);
+      border: none;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      font-size: 20px;
+      cursor: pointer;
+      color: white;
+      backdrop-filter: blur(10px);
+      z-index: 1001;
+    }
+    
+    /* User status indicators */
+    .user-status {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.7);
+      padding: 10px 20px;
+      border-radius: 25px;
+      font-size: 0.9em;
+      z-index: 1000;
+    }
+    
+    .status-dot {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-right: 5px;
+    }
+    
+    .status-active { background: #4CAF50; }
+    .status-inactive { background: #f44336; }
     
     /* Floating colored hearts */
     .particles { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: -1; }
@@ -47,25 +111,23 @@
     .game-title { font-size: 2.5em; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); color: #000000; }
     .subtitle { font-size: 1.1em; margin-bottom: 30px; opacity: 0.9; }
     
-    /* FIXED: Teddy PNG container */
+    /* FIXED: Teddy PNG container - NO EMOJI, NO NAMEPLATE */
     .teddy-container { position: relative; width: 400px; height: 500px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; }
     
-    /* FIXED: Teddy PNG image */
+    /* FIXED: Only PNG image */
     .teddy-bear { 
       width: 400px; 
       height: 400px; 
-      position: relative; 
-      z-index: 1; 
       background-image: url('/teddy.png');
       background-size: contain;
       background-repeat: no-repeat;
       background-position: center;
     }
     
-    /* FIXED: Heart positioned over teddy's hands */
+    /* FIXED: Heart positioned over PNG heart area */
     .heart-holder { 
       position: absolute; 
-      top: 180px; /* Positioned at chest level over hands */
+      top: 180px; /* Positioned over PNG heart */
       left: 50%; 
       transform: translateX(-50%); 
       z-index: 2; 
@@ -75,12 +137,12 @@
     
     .heart-container { position: relative; width: 100%; height: 100%; }
     
-    /* FIXED: RED heart visible */
+    /* FIXED: WHITE background heart */
     .heart { 
       position: absolute; 
       width: 100%; 
       height: 100%; 
-      background: #ff0000 !important; /* Force red color */
+      background: #ffffff !important; /* White background */
       clip-path: path('M125,40 C125,15 100,0 75,0 C50,0 25,15 25,40 C25,60 75,110 75,110 C75,110 125,60 125,40 Z'); 
     }
     
@@ -94,7 +156,7 @@
       clip-path: path('M125,40 C125,15 100,0 75,0 C50,0 25,15 25,40 C25,60 75,110 75,110 C75,110 125,60 125,40 Z'); 
     }
     
-    /* FIXED: Heart text on white background */
+    /* FIXED: Dare text inside heart */
     .heart-text { 
       position: absolute; 
       top: 50%; 
@@ -115,10 +177,6 @@
       background: rgba(255,255,255,0.9) !important; /* White background */
       border-radius: 10px;
     }
-    
-    .necklace { position: absolute; top: 140px; left: 50%; transform: translateX(-50%); z-index: 3; display: none; }
-    .necklace-chain { width: 60px; height: 40px; border: 3px solid gold; border-bottom: none; border-radius: 30px 30px 0 0; }
-    .name-plate { background: gold; padding: 5px 12px; border-radius: 5px; font-size: 12px; color: #333; font-weight: bold; margin-top: -5px; text-align: center; min-width: 80px; }
     
     .turn-indicator { margin: 20px 0; font-size: 1.2em; font-weight: bold; animation: pulse 1.5s infinite; will-change: opacity; }
     @keyframes pulse { 0% { opacity: 0.7; } 50% { opacity: 1; } 100% { opacity: 0.7; } }
@@ -150,6 +208,18 @@
   </style>
 </head>
 <body>
+  <!-- User Status Indicator -->
+  <div class="user-status" id="userStatus">
+    <span class="status-dot" id="creatorStatus"></span>
+    <span id="creatorText">Creator: Waiting...</span>
+    &nbsp;&nbsp;|&nbsp;&nbsp;
+    <span class="status-dot" id="joinerStatus"></span>
+    <span id="joinerText">Joiner: Waiting...</span>
+  </div>
+
+  <!-- Minimize Button -->
+  <button class="minimize-btn" id="minimizeBtn" onclick="toggleMinimize()">➖</button>
+
   <!-- Loading Spinner -->
   <div class="loading" id="loading">
     <div class="spinner"></div>
@@ -205,18 +275,13 @@
     <div class="turn-indicator" id="turnIndicator">Waiting for players...</div>
 
     <div class="teddy-container">
-      <!-- FIXED: Teddy PNG image instead of emoji -->
+      <!-- FIXED: Only PNG image -->
       <div class="teddy-bear"></div>
       
-      <div class="necklace" id="necklace">
-        <div class="necklace-chain"></div>
-        <div class="name-plate" id="creatorName">Room</div>
-      </div>
-      
-      <!-- FIXED: Heart positioned over teddy's hands -->
+      <!-- FIXED: Heart positioned over PNG heart area -->
       <div class="heart-holder">
         <div class="heart-container">
-          <div class="heart red-layer"></div>
+          <div class="heart"></div>
           <canvas id="scratchCanvas"></canvas>
           <div class="heart-text" id="heartText">Loading dare...</div>
         </div>
@@ -248,6 +313,8 @@
     let isMyTurn = false;
     let creatorName = '';
     let lastEmitTime = 0;
+    let isMinimized = false;
+    let bothUsersJoined = false;
 
     // Create colored heart particles
     function createParticles() {
@@ -264,6 +331,86 @@
       }
     }
     createParticles();
+
+    // Minimize functionality
+    function toggleMinimize() {
+      isMinimized = !isMinimized;
+      document.body.classList.toggle('minimized');
+      document.getElementById('minimizeBtn').textContent = isMinimized ? '⬜' : '➖';
+      
+      if (isMinimized) {
+        makeDraggable();
+      } else {
+        removeDraggable();
+      }
+    }
+
+    function makeDraggable() {
+      let isDragging = false;
+      let currentX;
+      let currentY;
+      let initialX;
+      let initialY;
+      let xOffset = 0;
+      let yOffset = 0;
+
+      document.body.addEventListener('mousedown', dragStart);
+      document.body.addEventListener('mouseup', dragEnd);
+      document.body.addEventListener('mousemove', drag);
+
+      function dragStart(e) {
+        initialX = e.clientX - xOffset;
+        initialY = e.clientY - yOffset;
+        if (e.target === document.body || e.target.classList.contains('minimize-btn')) {
+          isDragging = true;
+        }
+      }
+
+      function dragEnd(e) {
+        initialX = currentX;
+        initialY = currentY;
+        isDragging = false;
+      }
+
+      function drag(e) {
+        if (isDragging) {
+          e.preventDefault();
+          currentX = e.clientX - initialX;
+          currentY = e.clientY - initialY;
+          xOffset = currentX;
+          yOffset = currentY;
+          document.body.style.transform = `translate(${currentX}px, ${currentY}px)`;
+        }
+      }
+    }
+
+    function removeDraggable() {
+      document.body.style.transform = '';
+      document.body.removeEventListener('mousedown', dragStart);
+      document.body.removeEventListener('mouseup', dragEnd);
+      document.body.removeEventListener('mousemove', drag);
+    }
+
+    // User status management
+    function updateUserStatus(creatorActive, joinerActive) {
+      const creatorStatus = document.getElementById('creatorStatus');
+      const creatorText = document.getElementById('creatorText');
+      const joinerStatus = document.getElementById('joinerStatus');
+      const joinerText = document.getElementById('joinerText');
+
+      creatorStatus.className = creatorActive ? 'status-dot status-active' : 'status-dot status-inactive';
+      creatorText.textContent = creatorActive ? 'Creator: Connected' : 'Creator: Disconnected';
+      
+      joinerStatus.className = joinerActive ? 'status-dot status-active' : 'status-dot status-inactive';
+      joinerText.textContent = joinerActive ? 'Joiner: Connected' : 'Joiner: Waiting...';
+
+      bothUsersJoined = creatorActive && joinerActive;
+      
+      // Disable scratch if both users not joined
+      if (!bothUsersJoined && currentRole === 'joiner') {
+        isMyTurn = false;
+      }
+    }
 
     // Loading management
     function showLoading() { document.getElementById('loading').style.display = 'block'; }
@@ -343,7 +490,7 @@
       canvas.style.width = CONFIG.CANVAS_WIDTH + 'px';
       canvas.style.height = CONFIG.CANVAS_HEIGHT + 'px';
       ctx.scale(dpr, dpr);
-      ctx.fillStyle = 'rgba(255, 0, 0, 0.95)';
+      ctx.fillStyle = 'rgba(255, 0, 0, 0.95)'; // RED layer on top of white heart
       ctx.fillRect(0, 0, CONFIG.CANVAS_WIDTH, CONFIG.CANVAS_HEIGHT);
       ctx.globalCompositeOperation = 'destination-out';
     }
@@ -381,8 +528,23 @@
       updateTurnIndicator();
     });
 
+    socket.on('user-status', (status) => {
+      updateUserStatus(status.creatorActive, status.joinerActive);
+    });
+
+    socket.on('room-closed', () => {
+      alert('Room closed by creator!');
+      location.reload();
+    });
+
     function updateTurnIndicator() {
       const indicator = document.getElementById('turnIndicator');
+      if (!bothUsersJoined) {
+        indicator.textContent = '⏳ Waiting for both players...';
+        indicator.style.color = '#ff9800';
+        return;
+      }
+      
       if (isMyTurn && !hasScratched) {
         indicator.textContent = '✨ Your turn! Scratch the heart';
         indicator.style.color = '#4CAF50';
@@ -398,17 +560,22 @@
     // Scratching logic
     let isDrawing = false;
 
-    canvas.addEventListener('mousedown', () => { if (isMyTurn) isDrawing = true; });
+    canvas.addEventListener('mousedown', () => { 
+      if (isMyTurn && bothUsersJoined) isDrawing = true; 
+    });
     canvas.addEventListener('mouseup', () => {
-      if (isMyTurn) {
+      if (isMyTurn && bothUsersJoined) {
         isDrawing = false;
         checkScratchComplete();
       }
     });
     canvas.addEventListener('mousemove', draw);
-    canvas.addEventListener('touchstart', (e) => { e.preventDefault(); if (isMyTurn) isDrawing = true; });
+    canvas.addEventListener('touchstart', (e) => { 
+      e.preventDefault(); 
+      if (isMyTurn && bothUsersJoined) isDrawing = true; 
+    });
     canvas.addEventListener('touchend', () => {
-      if (isMyTurn) {
+      if (isMyTurn && bothUsersJoined) {
         isDrawing = false;
         checkScratchComplete();
       }
@@ -416,7 +583,7 @@
     canvas.addEventListener('touchmove', draw);
 
     function draw(e) {
-      if (!isDrawing || !isMyTurn) return;
+      if (!isDrawing || !isMyTurn || !bothUsersJoined) return;
       
       const now = Date.now();
       if (now - lastEmitTime < 16) return;
@@ -466,6 +633,7 @@
 
     // Exit game
     function exitGame() {
+      socket.emit('leave-room', currentRoom);
       socket.disconnect();
       location.reload();
     }
@@ -487,8 +655,7 @@
       creatorName = roomParam;
       currentRole = 'joiner';
       document.getElementById('inviteBtn').style.display = 'none';
-      document.getElementById('necklace').style.display = 'block';
-      document.getElementById('creatorName').textContent = creatorName;
+      document.getElementById('necklace').style.display = 'none'; // NO nameplate for PNG
       setTimeout(() => joinGame(), 100);
     } else {
       document.getElementById('necklace').style.display = 'none';
