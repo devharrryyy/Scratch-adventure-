@@ -231,7 +231,6 @@
       .game-title { font-size: 2em; }
       .instruction { font-size: 1em; }
       .turn-indicator { font-size: 1.1em; }
-      .top-bar, .bottom-bar { padding: 10px 15px; }
     }
   </style>
 </head>
@@ -296,6 +295,7 @@
     let hasScratched = false;
     let isMyTurn = false;
     let joinerJoined = false;
+    let isPageActive = true;
 
     // ===== CREATE PARTICLES =====
     function createParticles() {
@@ -317,7 +317,7 @@
     function showRoomPopup() { document.getElementById('roomPopup').style.display = 'flex'; }
     function closeRoomPopup() { document.getElementById('roomPopup').style.display = 'none'; }
     function showInvitePopup() {
-      // SIMPLE INVITE LINK
+      // SIMPLE INVITE LINK WITH ROOM NAME
       const baseUrl = window.location.origin + window.location.pathname.replace(/\/$/, '');
       const link = `${baseUrl}?room=${encodeURIComponent(currentRoom)}`;
       document.getElementById('inviteLink').value = link;
@@ -346,6 +346,13 @@
       document.getElementById('gameScreen').style.display = 'flex';
       setupCanvas();
       socket.emit('join', currentRoom);
+      
+      // START HEARTBEAT FOR ACTIVE STATUS
+      setInterval(() => {
+        if (currentRoom && socket.connected) {
+          socket.emit('user-active', { room: currentRoom, active: isPageActive });
+        }
+      }, 2000);
     }
 
     // ===== INVITE COPY =====
@@ -363,7 +370,7 @@
       }
     }
 
-    // ===== CANVAS SETUP - RED LAYER =====
+    // ===== CANVAS SETUP =====
     const canvas = document.getElementById('scratchCanvas');
     const ctx = canvas.getContext('2d');
 
@@ -375,12 +382,12 @@
       canvas.style.height = CONFIG.CANVAS_HEIGHT + 'px';
       ctx.scale(dpr, dpr);
       
-      // DRAW RED LAYER
+      // RED LAYER ON TOP
       ctx.globalCompositeOperation = 'source-over';
       ctx.fillStyle = '#ff0000';
       ctx.fillRect(0, 0, CONFIG.CANVAS_WIDTH, CONFIG.CANVAS_HEIGHT);
       
-      // SET ERASE MODE
+      // SWITCH TO ERASE MODE
       ctx.globalCompositeOperation = 'destination-out';
     }
 
@@ -416,6 +423,20 @@
       updateUI();
     });
 
+    socket.on('joiner-left', () => {
+      joinerJoined = false;
+      updateUI();
+    });
+
+    socket.on('user-active-status', (data) => {
+      const statusDot = document.querySelector('#joinerStatus .status-dot');
+      if (data.active) {
+        statusDot.className = 'status-dot status-online';
+      } else {
+        statusDot.className = 'status-dot status-offline';
+      }
+    });
+
     socket.on('new-turn', (data) => {
       hasScratched = false;
       document.getElementById('dareText').textContent = '♥️ Scratch to reveal!';
@@ -432,6 +453,11 @@
       updateUI();
     });
 
+    socket.on('room-closed', () => {
+      alert('Room closed by creator. Redirecting...');
+      window.location.href = window.location.pathname;
+    });
+
     // ===== UPDATE UI =====
     function updateUI() {
       const indicator = document.getElementById('turnIndicator');
@@ -439,13 +465,9 @@
       const completeBtn = document.getElementById('completeBtn');
       
       // Update status
-      if (joinerJoined) {
-        statusDot.className = 'status-dot status-online';
-      } else {
-        statusDot.className = 'status-dot status-offline';
-      }
+      statusDot.className = joinerJoined ? 'status-dot status-online' : 'status-dot status-offline';
       
-      // Update turn text
+      // Update text
       if (!joinerJoined) {
         indicator.textContent = '⏳ Waiting for partner to join...';
       } else if (isMyTurn && !hasScratched) {
@@ -474,16 +496,16 @@
       updateUI();
     }
 
-    // ===== SMOOTH SCRATCHING - FIXED =====
+    // ===== SCRATCHING - FIXED WITH LINE DRAWING =====
     let isDrawing = false;
+    let lastX = 0, lastY = 0;
 
     canvas.addEventListener('mousedown', (e) => { 
       if (isMyTurn && joinerJoined && !hasScratched) {
         isDrawing = true;
         const rect = canvas.getBoundingClientRect();
-        const x = (e.clientX - rect.left) * (CONFIG.CANVAS_WIDTH / rect.width);
-        const y = (e.clientY - rect.top) * (CONFIG.CANVAS_HEIGHT / rect.height);
-        scratch(x, y);
+        lastX = (e.clientX - rect.left) * (CONFIG.CANVAS_WIDTH / rect.width);
+        lastY = (e.clientY - rect.top) * (CONFIG.CANVAS_HEIGHT / rect.height);
       } 
     });
     
@@ -493,7 +515,19 @@
       const rect = canvas.getBoundingClientRect();
       const x = (e.clientX - rect.left) * (CONFIG.CANVAS_WIDTH / rect.width);
       const y = (e.clientY - rect.top) * (CONFIG.CANVAS_HEIGHT / rect.height);
-      scratch(x, y);
+      
+      // DRAW SMOOTH LINE TO ERASE
+      ctx.lineWidth = CONFIG.SCRATCH_RADIUS * 2;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(lastX, lastY);
+      ctx.lineTo(x, y);
+      ctx.stroke();
+      
+      lastX = x;
+      lastY = y;
+      
+      socket.emit('scratch', { room: currentRoom, x, y, radius: CONFIG.SCRATCH_RADIUS });
     });
     
     canvas.addEventListener('mouseup', () => { 
@@ -511,9 +545,8 @@
       if (isMyTurn && joinerJoined && !hasScratched) {
         isDrawing = true;
         const rect = canvas.getBoundingClientRect();
-        const x = (e.touches[0].clientX - rect.left) * (CONFIG.CANVAS_WIDTH / rect.width);
-        const y = (e.touches[0].clientY - rect.top) * (CONFIG.CANVAS_HEIGHT / rect.height);
-        scratch(x, y);
+        lastX = (e.touches[0].clientX - rect.left) * (CONFIG.CANVAS_WIDTH / rect.width);
+        lastY = (e.touches[0].clientY - rect.top) * (CONFIG.CANVAS_HEIGHT / rect.height);
       } 
     });
     
@@ -524,7 +557,18 @@
       const rect = canvas.getBoundingClientRect();
       const x = (e.touches[0].clientX - rect.left) * (CONFIG.CANVAS_WIDTH / rect.width);
       const y = (e.touches[0].clientY - rect.top) * (CONFIG.CANVAS_HEIGHT / rect.height);
-      scratch(x, y);
+      
+      ctx.lineWidth = CONFIG.SCRATCH_RADIUS * 2;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(lastX, lastY);
+      ctx.lineTo(x, y);
+      ctx.stroke();
+      
+      lastX = x;
+      lastY = y;
+      
+      socket.emit('scratch', { room: currentRoom, x, y, radius: CONFIG.SCRATCH_RADIUS });
     });
     
     canvas.addEventListener('touchend', () => { 
@@ -534,18 +578,10 @@
       } 
     });
 
-    function scratch(x, y) {
-      // Draw eraser circle
-      ctx.beginPath();
-      ctx.arc(x, y, CONFIG.SCRATCH_RADIUS, 0, Math.PI * 2);
-      ctx.fill();
-      
-      // Emit to other player
-      socket.emit('scratch', { room: currentRoom, x, y, radius: CONFIG.SCRATCH_RADIUS });
-    }
-
     socket.on('scratch', (data) => {
-      // Receive from other player
+      // OTHER PLAYER'S SCRATCH
+      ctx.lineWidth = CONFIG.SCRATCH_RADIUS * 2;
+      ctx.lineCap = 'round';
       ctx.beginPath();
       ctx.arc(data.x, data.y, data.radius, 0, Math.PI * 2);
       ctx.fill();
@@ -570,10 +606,15 @@
       }
     }
 
+    // ===== PAGE VISIBILITY =====
+    document.addEventListener('visibilitychange', () => {
+      isPageActive = !document.hidden;
+    });
+
     // ===== EXIT GAME =====
     function exitGame() {
       if (socket) socket.disconnect();
-      window.location.reload();
+      window.location.href = window.location.pathname;
     }
 
     // ===== AUTO-JOIN FROM URL =====
@@ -584,7 +625,7 @@
       creatorName = roomParam;
       currentRole = 'joiner';
       document.getElementById('creatorName').textContent = creatorName;
-      document.getElementById('inviteBtn').style.display = 'none'; // HIDE INVITE FOR JOINER
+      document.getElementById('inviteBtn').style.display = 'none';
       setTimeout(() => joinGame(), 100);
     }
   </script>
