@@ -1,4 +1,3 @@
- 
 const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
@@ -13,15 +12,12 @@ const io = new Server(server, {
   }
 });
 
-// ✅ Serve static files from root
 app.use(express.static(__dirname));
 
-// ✅ Serve index.html for root URL
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
 
-// ✅ Dare list
 const dares = [
   "Apni ek cute selfie bhejo",
   "Sirf emojis me apna mood batao",
@@ -52,17 +48,14 @@ function getRandomDare() {
 }
 
 io.on("connection", socket => {
-
   socket.on("join", room => {
     socket.join(room);
-
     if (!rooms[room]) {
       rooms[room] = {
         dare: getRandomDare(),
         scratched: false
       };
     }
-
     socket.emit("state", rooms[room]);
   });
 
@@ -86,14 +79,8 @@ io.on("connection", socket => {
       io.to(room).emit("state", rooms[room]);
     }
   });
-
-  socket.on("disconnect", () => {
-    console.log("User disconnected");
-  });
-
 });
 
-// ✅ PORT fix for Render
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
