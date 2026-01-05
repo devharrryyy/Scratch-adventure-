@@ -17,7 +17,7 @@
       height: 100%;
     }
 
-    /* ===== FLOATING PARTICLES - MULTI COLOR ===== */
+    /* ===== FLOATING PARTICLES ===== */
     .particles { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
     .particle { position: absolute; border-radius: 50%; animation: float 8s infinite ease-in-out; }
     .particle.heart { width: 12px; height: 12px; background: #ff6b6b; }
@@ -96,7 +96,7 @@
     }
     .top-btn:active { transform: scale(0.9); }
 
-    /* ===== CENTER CONTENT - FIXED ALIGNMENT ===== */
+    /* ===== CENTER CONTENT ===== */
     .center-content { 
       flex: 1; 
       display: flex; 
@@ -104,56 +104,17 @@
       align-items: center; 
       justify-content: center; 
       padding: 20px;
-      padding-top: 80px; /* Space for fixed top bar */
-      padding-bottom: 80px; /* Space for fixed bottom bar */
+      padding-top: 80px;
+      padding-bottom: 80px;
     }
     
-    /* LINE 1: Game Title */
-    .game-title { 
-      font-size: 2.5em; 
-      margin-bottom: 10px; 
-      text-shadow: 2px 2px 4px rgba(0,0,0,0.2); 
-      color: #000000; 
-      text-align: center;
-      line-height: 1.2;
-    }
-    
-    /* LINE 2: Instruction */
-    .instruction { 
-      font-size: 1.2em; 
-      margin-bottom: 15px; 
-      color: #333; 
-      font-weight: 500;
-      text-align: center;
-    }
-    
-    /* LINE 3: Turn Indicator */
-    .turn-indicator { 
-      margin: 10px 0; 
-      font-size: 1.3em; 
-      font-weight: bold; 
-      animation: pulse 1.5s infinite; 
-      color: #333;
-      text-align: center;
-      line-height: 1.3;
-      min-height: 30px;
-    }
+    .game-title { font-size: 2.5em; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); color: #000000; text-align: center; line-height: 1.2; }
+    .instruction { font-size: 1.2em; margin-bottom: 15px; color: #333; font-weight: 500; text-align: center; }
+    .turn-indicator { margin: 10px 0; font-size: 1.3em; font-weight: bold; animation: pulse 1.5s infinite; color: #333; text-align: center; line-height: 1.3; min-height: 30px; }
     @keyframes pulse { 0%, 100% { opacity: 0.7; } 50% { opacity: 1; } }
+    .name-plate { background: linear-gradient(45deg, gold, #ffd700); padding: 10px 25px; border-radius: 25px; font-size: 15px; color: #333; font-weight: bold; box-shadow: 0 5px 15px rgba(0,0,0,0.2); margin: 10px 0; text-align: center; }
     
-    /* LINE 4: Name Plate */
-    .name-plate { 
-      background: linear-gradient(45deg, gold, #ffd700); 
-      padding: 10px 25px; 
-      border-radius: 25px; 
-      font-size: 15px; 
-      color: #333; 
-      font-weight: bold; 
-      box-shadow: 0 5px 15px rgba(0,0,0,0.2); 
-      margin: 10px 0;
-      text-align: center;
-    }
-    
-    /* LINE 5: Dare Box - RED BACKGROUND */
+    /* ===== DARE BOX - RED BACKGROUND ===== */
     .dare-box { 
       position: relative; 
       width: 350px; 
@@ -193,7 +154,6 @@
       word-wrap: break-word;
     }
     
-    /* LINE 6: Complete Button */
     .complete-btn { 
       padding: 15px 40px; 
       font-size: 1.1em; 
@@ -210,7 +170,7 @@
     .complete-btn:hover { transform: scale(1.05); box-shadow: 0 8px 25px rgba(76,175,80,0.4); }
     .complete-btn:disabled { background: #ccc !important; cursor: not-allowed !important; transform: scale(1) !important; opacity: 0.6; }
 
-    /* ===== BOTTOM BAR - FIXED - ALWAYS VISIBLE ===== */
+    /* ===== BOTTOM BAR ===== */
     .bottom-bar { 
       display: flex; 
       justify-content: space-between; 
@@ -249,7 +209,7 @@
       text-align: center;
     }
 
-    /* ===== STATUS DOTS - ACTIVE/INACTIVE ===== */
+    /* ===== STATUS DOTS ===== */
     .status-dot { 
       width: 8px; 
       height: 8px; 
@@ -300,24 +260,18 @@
 
     <!-- CENTER CONTENT -->
     <div class="center-content">
-      <!-- LINE 1 -->
       <h2 class="game-title">💕 Scratch Adventure</h2>
-      <!-- LINE 2 -->
       <p class="instruction">Scratch the field with your finger</p>
-      <!-- LINE 3 -->
       <div class="turn-indicator" id="turnIndicator">Waiting for partner to join...</div>
-      <!-- LINE 4 -->
       <div class="name-plate" id="creatorName">Room</div>
-      <!-- LINE 5: DARE BOX -->
       <div class="dare-box" id="dareBox">
         <canvas id="scratchCanvas"></canvas>
         <div class="dare-text" id="dareText">♥️ Scratch to reveal!</div>
       </div>
-      <!-- LINE 6: COMPLETE BUTTON -->
       <button class="complete-btn hidden" id="completeBtn" onclick="completeDare()">✅ Dare Completed</button>
     </div>
 
-    <!-- BOTTOM BAR - ALWAYS VISIBLE -->
+    <!-- BOTTOM BAR -->
     <div class="bottom-bar">
       <div class="profile-status"><div class="profile-icon">👤</div><span id="joinerStatus">Partner <span class="status-dot status-offline"></span></span></div>
       <div class="creator-info">Created by urluv_harrryyy</div>
@@ -332,8 +286,7 @@
       CANVAS_WIDTH: 350,
       CANVAS_HEIGHT: 120,
       SCRATCH_RADIUS: 25,
-      PIXEL_SAMPLE_RATE: 40,
-      DRAW_INTERVAL: 16
+      PIXEL_SAMPLE_RATE: 40
     };
 
     const socket = io();
@@ -343,10 +296,8 @@
     let hasScratched = false;
     let isMyTurn = false;
     let joinerJoined = false;
-    let lastEmitTime = 0;
-    let isPageActive = true;
 
-    // ===== CREATE FLOATING PARTICLES =====
+    // ===== CREATE PARTICLES =====
     function createParticles() {
       const container = document.getElementById('particles');
       const colors = ['heart', 'dot1', 'dot2', 'dot3', 'dot4'];
@@ -366,7 +317,9 @@
     function showRoomPopup() { document.getElementById('roomPopup').style.display = 'flex'; }
     function closeRoomPopup() { document.getElementById('roomPopup').style.display = 'none'; }
     function showInvitePopup() {
-      const link = `${window.location.origin}${window.location.pathname}?room=${encodeURIComponent(currentRoom)}`;
+      // SIMPLE INVITE LINK
+      const baseUrl = window.location.origin + window.location.pathname.replace(/\/$/, '');
+      const link = `${baseUrl}?room=${encodeURIComponent(currentRoom)}`;
       document.getElementById('inviteLink').value = link;
       document.getElementById('invitePopup').style.display = 'flex';
     }
@@ -395,7 +348,7 @@
       socket.emit('join', currentRoom);
     }
 
-    // ===== INVITE COPY - REMOVED FOR JOINER =====
+    // ===== INVITE COPY =====
     async function copyLink() {
       try {
         const link = document.getElementById('inviteLink');
@@ -423,6 +376,7 @@
       ctx.scale(dpr, dpr);
       
       // DRAW RED LAYER
+      ctx.globalCompositeOperation = 'source-over';
       ctx.fillStyle = '#ff0000';
       ctx.fillRect(0, 0, CONFIG.CANVAS_WIDTH, CONFIG.CANVAS_HEIGHT);
       
@@ -435,11 +389,9 @@
       currentRole = role;
       isMyTurn = (role === 'creator');
       
-      // HIDE INVITE BUTTON FOR JOINER
+      // HIDE INVITE FOR JOINER
       if (role === 'joiner') {
         document.getElementById('inviteBtn').style.display = 'none';
-      } else {
-        document.getElementById('inviteBtn').style.display = 'block';
       }
       
       updateUI();
@@ -464,18 +416,6 @@
       updateUI();
     });
 
-    socket.on('joiner-left', () => {
-      joinerJoined = false;
-      updateUI();
-    });
-
-    socket.on('user-status', (data) => {
-      const statusDot = document.querySelector('#joinerStatus .status-dot');
-      if (data.userId === rooms[currentRoom]?.joiner) {
-        statusDot.className = data.active ? 'status-dot status-online' : 'status-dot status-offline';
-      }
-    });
-
     socket.on('new-turn', (data) => {
       hasScratched = false;
       document.getElementById('dareText').textContent = '♥️ Scratch to reveal!';
@@ -498,14 +438,14 @@
       const statusDot = document.querySelector('#joinerStatus .status-dot');
       const completeBtn = document.getElementById('completeBtn');
       
-      // Update status dot
+      // Update status
       if (joinerJoined) {
-        statusDot.className = isPageActive ? 'status-dot status-online' : 'status-dot status-offline';
+        statusDot.className = 'status-dot status-online';
       } else {
         statusDot.className = 'status-dot status-offline';
       }
       
-      // Update turn indicator
+      // Update turn text
       if (!joinerJoined) {
         indicator.textContent = '⏳ Waiting for partner to join...';
       } else if (isMyTurn && !hasScratched) {
@@ -516,7 +456,7 @@
         indicator.textContent = '💖 Dare revealed! Tap "Dare Completed"';
       }
       
-      // Show/hide complete button
+      // Show/hide button
       if (hasScratched && joinerJoined) {
         completeBtn.classList.remove('hidden');
       } else {
@@ -536,41 +476,24 @@
 
     // ===== SMOOTH SCRATCHING - FIXED =====
     let isDrawing = false;
-    let lastX = 0, lastY = 0;
 
     canvas.addEventListener('mousedown', (e) => { 
       if (isMyTurn && joinerJoined && !hasScratched) {
         isDrawing = true;
         const rect = canvas.getBoundingClientRect();
-        lastX = (e.clientX - rect.left) * (CONFIG.CANVAS_WIDTH / rect.width);
-        lastY = (e.clientY - rect.top) * (CONFIG.CANVAS_HEIGHT / rect.height);
+        const x = (e.clientX - rect.left) * (CONFIG.CANVAS_WIDTH / rect.width);
+        const y = (e.clientY - rect.top) * (CONFIG.CANVAS_HEIGHT / rect.height);
+        scratch(x, y);
       } 
     });
     
     canvas.addEventListener('mousemove', (e) => {
       if (!isDrawing || !isMyTurn || !joinerJoined || hasScratched) return;
       
-      const now = Date.now();
-      if (now - lastEmitTime < CONFIG.DRAW_INTERVAL) return;
-      lastEmitTime = now;
-
       const rect = canvas.getBoundingClientRect();
       const x = (e.clientX - rect.left) * (CONFIG.CANVAS_WIDTH / rect.width);
       const y = (e.clientY - rect.top) * (CONFIG.CANVAS_HEIGHT / rect.height);
-      
-      // DRAW SMOOTH LINE - FIX: Use fill for erasing
-      ctx.lineWidth = CONFIG.SCRATCH_RADIUS * 2;
-      ctx.lineCap = 'round';
-      ctx.beginPath();
-      ctx.moveTo(lastX, lastY);
-      ctx.lineTo(x, y);
-      ctx.stroke();
-      
-      lastX = x;
-      lastY = y;
-      
-      // EMIT TO OTHER PLAYER
-      socket.emit('scratch', { room: currentRoom, x, y, radius: CONFIG.SCRATCH_RADIUS });
+      scratch(x, y);
     });
     
     canvas.addEventListener('mouseup', () => { 
@@ -586,10 +509,11 @@
     canvas.addEventListener('touchstart', (e) => { 
       e.preventDefault(); 
       if (isMyTurn && joinerJoined && !hasScratched) {
-        const rect = canvas.getBoundingClientRect();
-        lastX = (e.touches[0].clientX - rect.left) * (CONFIG.CANVAS_WIDTH / rect.width);
-        lastY = (e.touches[0].clientY - rect.top) * (CONFIG.CANVAS_HEIGHT / rect.height);
         isDrawing = true;
+        const rect = canvas.getBoundingClientRect();
+        const x = (e.touches[0].clientX - rect.left) * (CONFIG.CANVAS_WIDTH / rect.width);
+        const y = (e.touches[0].clientY - rect.top) * (CONFIG.CANVAS_HEIGHT / rect.height);
+        scratch(x, y);
       } 
     });
     
@@ -597,25 +521,10 @@
       e.preventDefault();
       if (!isDrawing || !isMyTurn || !joinerJoined || hasScratched) return;
       
-      const now = Date.now();
-      if (now - lastEmitTime < CONFIG.DRAW_INTERVAL) return;
-      lastEmitTime = now;
-
       const rect = canvas.getBoundingClientRect();
       const x = (e.touches[0].clientX - rect.left) * (CONFIG.CANVAS_WIDTH / rect.width);
       const y = (e.touches[0].clientY - rect.top) * (CONFIG.CANVAS_HEIGHT / rect.height);
-      
-      ctx.lineWidth = CONFIG.SCRATCH_RADIUS * 2;
-      ctx.lineCap = 'round';
-      ctx.beginPath();
-      ctx.moveTo(lastX, lastY);
-      ctx.lineTo(x, y);
-      ctx.stroke();
-      
-      lastX = x;
-      lastY = y;
-      
-      socket.emit('scratch', { room: currentRoom, x, y, radius: CONFIG.SCRATCH_RADIUS });
+      scratch(x, y);
     });
     
     canvas.addEventListener('touchend', () => { 
@@ -625,10 +534,18 @@
       } 
     });
 
+    function scratch(x, y) {
+      // Draw eraser circle
+      ctx.beginPath();
+      ctx.arc(x, y, CONFIG.SCRATCH_RADIUS, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Emit to other player
+      socket.emit('scratch', { room: currentRoom, x, y, radius: CONFIG.SCRATCH_RADIUS });
+    }
+
     socket.on('scratch', (data) => {
-      // RECEIVE SCRATCH FROM OTHER PLAYER
-      ctx.lineWidth = CONFIG.SCRATCH_RADIUS * 2;
-      ctx.lineCap = 'round';
+      // Receive from other player
       ctx.beginPath();
       ctx.arc(data.x, data.y, data.radius, 0, Math.PI * 2);
       ctx.fill();
@@ -652,14 +569,6 @@
         console.error('Error checking scratch progress:', err);
       }
     }
-
-    // ===== PAGE VISIBILITY - STATUS UPDATE =====
-    document.addEventListener('visibilitychange', () => {
-      isPageActive = !document.hidden;
-      if (currentRoom) {
-        socket.emit('user-visibility', { room: currentRoom, active: isPageActive });
-      }
-    });
 
     // ===== EXIT GAME =====
     function exitGame() {
