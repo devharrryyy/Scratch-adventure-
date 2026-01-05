@@ -7,7 +7,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "*",
+    origin: process.env.FRONTEND_URL || "*",
     methods: ["GET", "POST"]
   }
 });
@@ -21,13 +21,9 @@ app.get("/", (req, res) => {
 const dares = [
   "Apni ek cute selfie bhejo", "Sirf emojis me apna mood batao", "Ek honest compliment bhejo",
   "Apna favourite song share karo", "5 minute tak fast reply karo", "Ek flirty line likho",
-  "Apna nickname batao", "Ek cheez batao jo tumhe smile de", "Voice note me sirf ‘hi’ bolo",
-  "Apni recent photo bhejo", "Ek secret emoji me likho", "Apni playlist ka last song batao",
-  "Ek fun GIF bhejo", "Apna current status describe karo", "Ek random memory share karo",
-  "Sirf ek word me mujhe describe karo", "Apni favourite app batao", "Ek funny sticker bhejo",
-  "Apna favourite late-night activity batao", "Ek sweet good-night line likho",
-  "Apni handwriting me naam likh ke pic bhejo", "Ek imaginary date idea batao",
-  "Apna screen wallpaper describe karo", "Ek cheez jo tumhe attractive lagti ho"
+  "Apna nickname batao", "Ek cheez batao jo tumhe smile de", "Voice note me sirf 'hi' bolo",
+  "Ek secret emoji me likho", "Apni playlist ka last song batao", "Ek fun GIF bhejo",
+  "Apna current status describe karo", "Ek random memory share karo", "Ek imaginary date idea batao"
 ];
 
 const rooms = {};
@@ -39,27 +35,32 @@ function getRandomDare() {
 io.on("connection", socket => {
   console.log("✅ User connected:", socket.id);
 
+  socket.on("check-room", (room) => {
+    socket.emit('room-check-result', !!rooms[room]);
+  });
+
   socket.on("join", (room) => {
-    // Check if room exists and is full
+    // CHECK IF ROOM EXISTS AND IS FULL
     if (rooms[room] && rooms[room].joiner) {
-      socket.emit('error', '🚫 Room is full or closed');
+      socket.emit('error', 'Room is full or closed');
       return;
     }
     
     socket.join(room);
     
     if (!rooms[room]) {
+      // CREATE NEW ROOM
       rooms[room] = {
         dare: getRandomDare(),
         scratched: false,
         turn: 'creator',
         creator: socket.id,
         joiner: null,
-        joinerJoined: false,
-        creatorActive: true
+        joinerJoined: false
       };
       socket.emit('role', 'creator');
     } else {
+      // JOIN EXISTING ROOM
       rooms[room].joiner = socket.id;
       rooms[room].joinerJoined = true;
       socket.emit('role', 'joiner');
@@ -99,14 +100,15 @@ io.on("connection", socket => {
   socket.on("disconnect", () => {
     console.log("❌ User disconnected:", socket.id);
     
+    // FIND AND CLEANUP ROOM
     for (const room in rooms) {
       if (rooms[room].creator === socket.id) {
-        // Creator left - delete room
+        // CREATOR LEFT - DELETE ROOM
         io.to(room).emit('room-closed');
         delete rooms[room];
         console.log(`🗑️ Room ${room} deleted`);
       } else if (rooms[room].joiner === socket.id) {
-        // Joiner left - remove joiner
+        // JOINER LEFT - REMOVE JOINER
         rooms[room].joiner = null;
         rooms[room].joinerJoined = false;
         io.to(room).emit('joiner-left');
