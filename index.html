@@ -1,184 +1,150 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Scratch Adventure</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<script src="/socket.io/socket.io.js"></script>
-
-<style>
-html,body{
-  margin:0;
-  height:100%;
-}
-body{
-  background:linear-gradient(135deg,#f5f5f5,#dcdcdc);
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  font-family:system-ui,Arial;
-  text-align:center;
-}
-
-h1{
-  font-size:36px;
-  margin-bottom:8px;
-}
-
-.wrap{
-  position:relative;
-  width:420px;
-  height:380px;
-}
-
-.heart{
-  position:absolute;
-  inset:0;
-  background:#fff;
-  clip-path:path("M210 300 C 0 180 60 -20 210 90 C 360 -20 420 180 210 300 Z");
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  padding:42px;
-  font-weight:800;
-  font-size:20px;
-  line-height:1.4;
-  box-shadow:
-    0 10px 25px rgba(0,0,0,0.25),
-    inset 0 0 25px rgba(255,0,0,0.15);
-}
-
-canvas{
-  position:absolute;
-  inset:0;
-  touch-action:none;
-}
-
-button{
-  margin-top:18px;
-  padding:12px 28px;
-  font-size:16px;
-  border:none;
-  border-radius:6px;
-  background:#ff0000;
-  color:#fff;
-  cursor:pointer;
-}
-
-.footer{
-  margin-top:10px;
-  font-size:12px;
-  color:#555;
-}
-
-/* 🎉 celebration dots */
-.confetti{
-  position:fixed;
-  width:8px;
-  height:8px;
-  background:red;
-  border-radius:50%;
-  animation:pop 900ms ease-out forwards;
-}
-
-@keyframes pop{
-  from{transform:translateY(0) scale(1);opacity:1}
-  to{transform:translateY(-120px) scale(0);opacity:0}
-}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Scratch Adventure</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #fff; }
+    .container { background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border-radius: 20px; padding: 30px; text-align: center; max-width: 400px; width: 90%; box-shadow: 0 8px 32px rgba(0,0,0,0.1); }
+    h1 { margin-bottom: 20px; font-size: 2em; }
+    .invite-icon { position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.2); border: none; border-radius: 50%; width: 50px; height: 50px; font-size: 24px; cursor: pointer; color: white; }
+    .scratch-container { position: relative; width: 300px; height: 150px; margin: 20px auto; border-radius: 15px; overflow: hidden; }
+    #scratchCanvas { position: absolute; top: 0; left: 0; cursor: crosshair; background: transparent; }
+    #dareText { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 18px; font-weight: bold; color: #333; text-align: center; width: 90%; }
+    .room-input { margin: 20px 0; }
+    input { padding: 12px; border: none; border-radius: 25px; width: 200px; margin: 0 5px; text-align: center; }
+    button { padding: 12px 24px; border: none; border-radius: 25px; background: #ff6b6b; color: white; cursor: pointer; font-weight: bold; margin: 5px; }
+    button:hover { background: #ff5252; }
+    .hidden { display: none; }
+  </style>
 </head>
-
 <body>
+  <button class="invite-icon" onclick="copyInviteLink()" title="Copy Invite Link">🔗</button>
+  
+  <div class="container">
+    <h1>💖 Scratch Adventure</h1>
+    
+    <div id="roomSetup">
+      <div class="room-input">
+        <input type="text" id="roomInput" placeholder="Enter room name" />
+        <button onclick="joinRoom()">Join Room</button>
+      </div>
+    </div>
 
-<h1>Scratch Adventure</h1>
+    <div id="gameArea" class="hidden">
+      <div class="scratch-container">
+        <div id="dareText"></div>
+        <canvas id="scratchCanvas"></canvas>
+      </div>
+      <button onclick="newRound()">New Round</button>
+    </div>
+  </div>
 
-<div class="wrap">
-  <div class="heart" id="dareText">Scratch to reveal</div>
-  <canvas id="scratch"></canvas>
-</div>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    let currentRoom = '';
+    const canvas = document.getElementById('scratchCanvas');
+    const ctx = canvas.getContext('2d');
+    const dareText = document.getElementById('dareText');
+    let isDrawing = false;
 
-<button onclick="nextRound()">Next Round</button>
-<div class="footer">created by urluv_herrryyy?</div>
+    function setupCanvas() {
+      const container = canvas.parentElement;
+      canvas.width = container.offsetWidth;
+      canvas.height = container.offsetHeight;
+      
+      ctx.fillStyle = '#ddd';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.globalCompositeOperation = 'destination-out';
+    }
 
-<script>
-const room =
-  new URLSearchParams(window.location.search).get("room") || "default";
+    function joinRoom() {
+      const room = document.getElementById('roomInput').value.trim();
+      if (room) {
+        currentRoom = room;
+        socket.emit('join', room);
+        document.getElementById('roomSetup').classList.add('hidden');
+        document.getElementById('gameArea').classList.remove('hidden');
+        setupCanvas();
+      }
+    }
 
-const socket = io();
-socket.emit("join", room);
+    function copyInviteLink() {
+      const url = new URL(window.location.href);
+      url.searchParams.set('room', currentRoom || 'newroom');
+      navigator.clipboard.writeText(url.toString());
+      alert('Invite link copied to clipboard!');
+    }
 
-const canvas = document.getElementById("scratch");
-const ctx = canvas.getContext("2d");
-canvas.width = 420;
-canvas.height = 380;
+    socket.on('state', (state) => {
+      dareText.textContent = state.scratched ? state.dare : 'Scratch to reveal!';
+      if (!state.scratched) {
+        setupCanvas();
+      }
+    });
 
-function drawCover(){
-  ctx.globalCompositeOperation="source-over";
-  ctx.clearRect(0,0,420,380);
-  ctx.fillStyle="#ff0000";
-  ctx.beginPath();
-  ctx.moveTo(210,300);
-  ctx.bezierCurveTo(0,180,60,-20,210,90);
-  ctx.bezierCurveTo(360,-20,420,180,210,300);
-  ctx.fill();
-  ctx.globalCompositeOperation="destination-out";
-}
+    socket.on('reveal', (dare) => {
+      dareText.textContent = dare;
+    });
 
-drawCover();
+    canvas.addEventListener('mousedown', () => isDrawing = true);
+    canvas.addEventListener('mouseup', () => {
+      isDrawing = false;
+      checkScratchComplete();
+    });
+    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('touchstart', () => isDrawing = true);
+    canvas.addEventListener('touchend', () => {
+      isDrawing = false;
+      checkScratchComplete();
+    });
+    canvas.addEventListener('touchmove', draw);
 
-let scratching=false;
+    function draw(e) {
+      if (!isDrawing) return;
+      const rect = canvas.getBoundingClientRect();
+      const x = (e.clientX || e.touches[0].clientX) - rect.left;
+      const y = (e.clientY || e.touches[0].clientY) - rect.top;
+      
+      ctx.beginPath();
+      ctx.arc(x, y, 20, 0, Math.PI * 2);
+      ctx.fill();
+      
+      socket.emit('scratch', { room: currentRoom, x, y, radius: 20 });
+    }
 
-canvas.onpointerdown=()=>scratching=true;
-canvas.onpointerup=canvas.onpointerleave=()=>{
-  scratching=false;
-  socket.emit("scratch-complete",room);
-};
+    socket.on('scratch', (data) => {
+      ctx.beginPath();
+      ctx.arc(data.x, data.y, data.radius, 0, Math.PI * 2);
+      ctx.fill();
+    });
 
-canvas.onpointermove=e=>{
-  if(!scratching) return;
-  const r=canvas.getBoundingClientRect();
-  const x=e.clientX-r.left;
-  const y=e.clientY-r.top;
-  scratch(x,y);
-  socket.emit("scratch",{room,x,y});
-};
+    function checkScratchComplete() {
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const pixels = imageData.data;
+      let transparent = 0;
+      for (let i = 3; i < pixels.length; i += 4) {
+        if (pixels[i] === 0) transparent++;
+      }
+      if (transparent > (pixels.length / 4) * 0.5) {
+        socket.emit('scratch-complete', currentRoom);
+      }
+    }
 
-function scratch(x,y){
-  ctx.beginPath();
-  ctx.arc(x,y,26,0,Math.PI*2);
-  ctx.fill();
-}
+    function newRound() {
+      socket.emit('new-round', currentRoom);
+    }
 
-socket.on("scratch",data=>scratch(data.x,data.y));
-
-socket.on("reveal",d=>{
-  document.getElementById("dareText").innerText=d;
-  celebrate();
-});
-
-socket.on("state",()=>{
-  document.getElementById("dareText").innerText="Scratch to reveal";
-  drawCover();
-});
-
-function nextRound(){
-  socket.emit("new-round",room);
-}
-
-/* 🎉 celebration */
-function celebrate(){
-  for(let i=0;i<20;i++){
-    const c=document.createElement("div");
-    c.className="confetti";
-    c.style.left=Math.random()*100+"vw";
-    c.style.top="60%";
-    c.style.background=`hsl(${Math.random()*360},90%,50%)`;
-    document.body.appendChild(c);
-    setTimeout(()=>c.remove(),900);
-  }
-}
-</script>
-
+    // Auto-join from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const roomParam = urlParams.get('room');
+    if (roomParam) {
+      document.getElementById('roomInput').value = roomParam;
+      setTimeout(() => joinRoom(), 100);
+    }
+  </script>
 </body>
 </html>
