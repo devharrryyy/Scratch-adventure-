@@ -19,26 +19,25 @@ app.get("/", (req, res) => {
 });
 
 const dares = [
-  "Apni ek cute selfie bhejo",
-  "Sirf emojis me apna mood batao",
-  "Ek honest compliment bhejo",
-  "Apna favourite song share karo",
-  "5 minute tak fast reply karo",
-  "Ek flirty line likho",
-  "Apna nickname batao",
-  "Ek cheez batao jo tumhe smile de",
-  "Voice note me sirf hi bolo",
-  "Apni recent photo bhejo",
-  "Ek secret batao",
-  "Ek fun GIF bhejo",
-  "Apna current status describe karo",
-  "Ek random memory share karo",
-  "Sirf ek word me mujhe describe karo",
-  "Apna favourite late-night activity batao",
-  "Ek sweet good-night line likho",
-  "Ek imaginary date idea batao",
-  "Ek cheez jo tumhe attractive lagti ho",
-  "Next round ka dare tum set karo"
+  "Apni ek cute selfie bhejo 💕",
+  "Sirf emojis me apna mood batao 😊",
+  "Ek honest compliment bhejo 💖",
+  "Apna favourite song share karo 🎵",
+  "5 minute tak fast reply karo ⚡",
+  "Ek flirty line likho 😉",
+  "Apna nickname batao 🌟",
+  "Ek cheez batao jo tumhe smile de 😊",
+  "Voice note me sirf hi bolo 🎤",
+  "Apni recent photo bhejo 📸",
+  "Ek secret batao 🤫",
+  "Ek fun GIF bhejo 🎭",
+  "Apna current status describe karo ✍️",
+  "Ek random memory share karo 💭",
+  "Sirf ek word me mujhe describe karo 💝",
+  "Apna favourite late-night activity batao 🌙",
+  "Ek sweet good-night line likho 🌜",
+  "Ek imaginary date idea batao 💭",
+  "Ek cheez jo tumhe attractive lagti ho 💕"
 ];
 
 const rooms = {};
@@ -48,15 +47,28 @@ function getRandomDare() {
 }
 
 io.on("connection", socket => {
-  socket.on("join", room => {
+  console.log("User connected:", socket.id);
+
+  socket.on("join", (room) => {
     socket.join(room);
+    
     if (!rooms[room]) {
       rooms[room] = {
         dare: getRandomDare(),
-        scratched: false
+        scratched: false,
+        turn: 'creator',
+        creator: socket.id,
+        joiner: null,
+        revealedFor: []
       };
+      socket.emit('role', 'creator');
+    } else {
+      rooms[room].joiner = socket.id;
+      socket.emit('role', 'joiner');
     }
+
     socket.emit("state", rooms[room]);
+    socket.to(room).emit('user-joined', socket.id);
   });
 
   socket.on("scratch", data => {
@@ -64,24 +76,33 @@ io.on("connection", socket => {
   });
 
   socket.on("scratch-complete", room => {
-    if (rooms[room]) {
+    if (rooms[room] && rooms[room].scratched === false) {
       rooms[room].scratched = true;
+      rooms[room].revealedFor.push(socket.id);
       io.to(room).emit("reveal", rooms[room].dare);
     }
   });
 
-  socket.on("new-round", room => {
-    if (rooms[room]) {
-      rooms[room] = {
-        dare: getRandomDare(),
-        scratched: false
-      };
-      io.to(room).emit("state", rooms[room]);
-    }
+  socket.on("done", room => {
+    if (!rooms[room]) return;
+    
+    rooms[room].scratched = false;
+    rooms[room].turn = (socket.id === rooms[room].creator) ? 'joiner' : 'creator';
+    rooms[room].revealedFor = [];
+    rooms[room].dare = getRandomDare();
+    
+    io.to(room).emit("new-turn", {
+      dare: rooms[room].dare,
+      turn: rooms[room].turn
+    });
+  });
+
+  socket.on("disconnect", () => {
+    console.log("User disconnected:", socket.id);
   });
 });
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`💖 Server running on port ${PORT}`);
 });
