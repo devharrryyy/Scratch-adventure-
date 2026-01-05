@@ -39,24 +39,24 @@
     
     /* Game Screen */
     .game-screen { display: none; flex-direction: column; align-items: center; justify-content: center; width: 100%; max-width: 600px; }
-    .game-title { font-size: 2.5em; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); }
+    .game-title { font-size: 2.5em; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); color: #000000; } /* ✅ BLACK COLOR ADDED */
     .subtitle { font-size: 1.1em; margin-bottom: 30px; opacity: 0.9; }
     
     .teddy-container { position: relative; width: 100%; max-width: 400px; height: 500px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; }
     
-    .teddy-bear { font-size: 280px; position: relative; z-index: 2; }
+    .teddy-bear { font-size: 280px; position: relative; z-index: 1; } /* ✅ NO JUMP, Z-INDEX LOWER */
     
-    .necklace { position: absolute; top: 140px; left: 50%; transform: translateX(-50%); z-index: 3; }
-    .necklace-chain { width: 60px; height: 40px; border: 3px solid gold; border-bottom: none; border-radius: 30px 30px 0 0; }
-    .name-plate { background: gold; padding: 5px 12px; border-radius: 5px; font-size: 12px; color: #333; font-weight: bold; margin-top: -5px; text-align: center; min-width: 80px; }
-    
-    .heart-holder { position: absolute; top: 220px; left: 50%; transform: translateX(-50%); z-index: 1; }
+    .heart-holder { position: absolute; top: 220px; left: 50%; transform: translateX(-50%); z-index: 2; } /* ✅ IN FRONT OF TEDDY, Z-INDEX HIGHER */
     
     .heart-container { position: relative; width: 250px; height: 220px; }
     .heart { position: absolute; width: 100%; height: 100%; background: #ff0000; clip-path: path('M125,40 C125,15 100,0 75,0 C50,0 25,15 25,40 C25,60 75,110 75,110 C75,110 125,60 125,40 Z'); }
     .heart-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #333; font-weight: bold; font-size: 16px; text-align: center; width: 85%; max-width: 200px; pointer-events: none; padding: 15px; word-wrap: break-word; overflow-wrap: break-word; hyphens: auto; line-height: 1.3; }
     
     #scratchCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: crosshair; clip-path: path('M125,40 C125,15 100,0 75,0 C50,0 25,15 25,40 C25,60 75,110 75,110 C75,110 125,60 125,40 Z'); }
+    
+    .necklace { position: absolute; top: 140px; left: 50%; transform: translateX(-50%); z-index: 3; }
+    .necklace-chain { width: 60px; height: 40px; border: 3px solid gold; border-bottom: none; border-radius: 30px 30px 0 0; }
+    .name-plate { background: gold; padding: 5px 12px; border-radius: 5px; font-size: 12px; color: #333; font-weight: bold; margin-top: -5px; text-align: center; min-width: 80px; }
     
     .turn-indicator { margin: 20px 0; font-size: 1.2em; font-weight: bold; animation: pulse 1.5s infinite; }
     @keyframes pulse { 0% { opacity: 0.7; } 50% { opacity: 1; } 100% { opacity: 0.7; } }
@@ -121,7 +121,7 @@
     <button class="top-btn exit-btn" onclick="showExitConfirm()">❌</button>
     <button class="top-btn invite-btn" id="inviteBtn" onclick="showInvitePopup()">🔗</button>
 
-    <h2 class="game-title">💕 Scratch Adventure</h2>
+    <h2 class="game-title">💕 Scratch Adventure</h2> <!-- ✅ BLACK COLOR AUTO APPLY HOGA -->
     <p class="subtitle">Scratch the field with your finger 💖</p>
     
     <div class="turn-indicator" id="turnIndicator">Waiting for players...</div>
@@ -134,7 +134,7 @@
         <div class="name-plate" id="creatorName">Room</div>
       </div>
       
-      <div class="heart-holder">
+      <div class="heart-holder"> <!-- ✅ IN FRONT OF TEDDY -->
         <div class="heart-container">
           <div class="heart red-layer"></div>
           <canvas id="scratchCanvas"></canvas>
@@ -347,6 +347,15 @@
       location.reload();
     }
 
+    // ✅ PHONE BACK BUTTON CONFIRMATION - ADDED NOW
+    window.addEventListener('beforeunload', (e) => {
+      if (document.getElementById('gameScreen').style.display === 'flex') {
+        e.preventDefault();
+        e.returnValue = '';
+        return '';
+      }
+    });
+
     // Auto-join from URL
     const urlParams = new URLSearchParams(window.location.search);
     const roomParam = urlParams.get('room');
@@ -358,10 +367,10 @@
       document.getElementById('necklace').style.display = 'block';
       document.getElementById('creatorName').textContent = creatorName;
       setTimeout(() => joinGame(), 100);
+    } else {
+      // Hide necklace only if NOT auto-joining
+      document.getElementById('necklace').style.display = 'none';
     }
-
-    // Hide necklace initially for joiners
-    document.getElementById('necklace').style.display = 'none';
   </script>
 </body>
 </html>
