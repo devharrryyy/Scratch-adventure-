@@ -45,31 +45,33 @@
     /* Game Screen */
     .game-screen { display: none; flex-direction: column; align-items: center; justify-content: center; width: 100%; max-width: 600px; }
     .game-title { font-size: 2.5em; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); color: #000000; }
-    .subtitle { font-size: 1.1em; margin-bottom: 30px; opacity: 0.9; }
     
-    .teddy-container { position: relative; width: 100%; max-width: 400px; height: 500px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; }
+    /* Dare Box - Animated & Stylish */
+    .dare-box-container { position: relative; padding: 5px; background: linear-gradient(45deg, #ff6b6b, #ffd93d, #ff6b6b, #ffd93d); background-size: 400% 400%; animation: borderAnimation 3s ease infinite; border-radius: 25px; margin: 20px 0; }
+    @keyframes borderAnimation { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
     
-    .teddy-bear { font-size: 280px; position: relative; z-index: 1; }
+    .dare-box { background: white; border-radius: 20px; padding: 30px; box-shadow: 0 15px 35px rgba(0,0,0,0.2); position: relative; overflow: hidden; }
     
-    .heart-holder { position: absolute; top: 220px; left: 50%; transform: translateX(-50%); z-index: 2; }
+    /* Heart Scratch Area */
+    .heart-container { position: relative; width: 300px; height: 260px; margin: 0 auto 20px; }
+    .heart { position: absolute; width: 100%; height: 100%; background: #ff0000; clip-path: path('M150,50 C150,20 120,0 90,0 C60,0 30,20 30,50 C30,75 90,130 90,130 C90,130 150,75 150,50 Z'); }
+    .heart-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #333; font-weight: bold; font-size: 18px; text-align: center; width: 85%; max-width: 250px; pointer-events: none; padding: 20px; word-wrap: break-word; overflow-wrap: break-word; hyphens: auto; line-height: 1.4; }
     
-    .heart-container { position: relative; width: 250px; height: 220px; }
-    .heart { position: absolute; width: 100%; height: 100%; background: #ff0000; clip-path: path('M125,40 C125,15 100,0 75,0 C50,0 25,15 25,40 C25,60 75,110 75,110 C75,110 125,60 125,40 Z'); }
-    .heart-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #333; font-weight: bold; font-size: clamp(12px, 2.5vw, 16px); text-align: center; width: 85%; max-width: 200px; pointer-events: none; padding: 15px; word-wrap: break-word; overflow-wrap: break-word; hyphens: auto; line-height: 1.3; }
+    #scratchCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: crosshair; clip-path: path('M150,50 C150,20 120,0 90,0 C60,0 30,20 30,50 C30,75 90,130 90,130 C90,130 150,75 150,50 Z'); }
     
-    #scratchCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: crosshair; clip-path: path('M125,40 C125,15 100,0 75,0 C50,0 25,15 25,40 C25,60 75,110 75,110 C75,110 125,60 125,40 Z'); }
+    /* Name Plate */
+    .name-plate-container { margin-top: 15px; }
+    .name-plate { background: linear-gradient(45deg, gold, #ffd700); padding: 10px 25px; border-radius: 25px; font-size: 16px; color: #333; font-weight: bold; text-align: center; min-width: 150px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
     
-    .necklace { position: absolute; top: 140px; left: 50%; transform: translateX(-50%); z-index: 3; display: none; }
-    .necklace-chain { width: 60px; height: 40px; border: 3px solid gold; border-bottom: none; border-radius: 30px 30px 0 0; }
-    .name-plate { background: gold; padding: 5px 12px; border-radius: 5px; font-size: 12px; color: #333; font-weight: bold; margin-top: -5px; text-align: center; min-width: 80px; }
-    
-    .turn-indicator { margin: 20px 0; font-size: 1.2em; font-weight: bold; animation: pulse 1.5s infinite; will-change: opacity; }
+    /* Turn Indicator */
+    .turn-indicator { margin: 20px 0; font-size: 1.2em; font-weight: bold; animation: pulse 1.5s infinite; will-change: opacity; color: #333; }
     @keyframes pulse { 0% { opacity: 0.7; } 50% { opacity: 1; } 100% { opacity: 0.7; } }
     
-    .done-btn { padding: 15px 40px; font-size: 1.1em; background: linear-gradient(45deg, #4CAF50, #66BB6A); border: none; border-radius: 30px; color: white; cursor: pointer; font-weight: bold; margin-top: 30px; animation: slideUp 0.5s ease-out; }
+    /* Refresh Button */
+    .refresh-btn { padding: 15px 40px; font-size: 1.1em; background: linear-gradient(45deg, #4CAF50, #66BB6A); border: none; border-radius: 30px; color: white; cursor: pointer; font-weight: bold; margin-top: 20px; animation: slideUp 0.5s ease-out; transition: all 0.3s; }
     @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-    .done-btn:hover { transform: scale(1.05); }
-    .done-btn:disabled { background: #ccc; cursor: not-allowed; transform: scale(1); }
+    .refresh-btn:hover { transform: scale(1.05); box-shadow: 0 8px 25px rgba(76,175,80,0.4); }
+    .refresh-btn:disabled { background: #ccc; cursor: not-allowed; transform: scale(1); }
     
     .creator-info { position: fixed; bottom: 20px; color: #333; font-size: 0.9em; text-align: center; width: 100%; }
     
@@ -132,28 +134,24 @@
     <button class="top-btn invite-btn" id="inviteBtn" onclick="showInvitePopup()">🔗</button>
 
     <h2 class="game-title">💕 Scratch Adventure</h2>
-    <p class="subtitle">Scratch the field with your finger 💖</p>
     
-    <div class="turn-indicator" id="turnIndicator">Waiting for players...</div>
-
-    <div class="teddy-container">
-      <div class="teddy-bear">🧸</div>
-      
-      <div class="necklace" id="necklace">
-        <div class="necklace-chain"></div>
-        <div class="name-plate" id="creatorName">Room</div>
-      </div>
-      
-      <div class="heart-holder">
+    <div class="dare-box-container">
+      <div class="dare-box">
         <div class="heart-container">
           <div class="heart red-layer"></div>
           <canvas id="scratchCanvas"></canvas>
           <div class="heart-text" id="heartText">Loading dare...</div>
         </div>
+        
+        <div class="name-plate-container">
+          <div class="name-plate" id="creatorName">Room</div>
+        </div>
       </div>
     </div>
-
-    <button class="done-btn hidden" id="doneBtn" onclick="markDone()">✨ Done ✨</button>
+    
+    <div class="turn-indicator" id="turnIndicator">Waiting for players...</div>
+    
+    <button class="refresh-btn hidden" id="refreshBtn" onclick="nextTurn()">🔄 Next Turn</button>
     
     <div class="creator-info">Created by urluv_herrryyy</div>
   </div>
@@ -164,8 +162,8 @@
     const CONFIG = {
       SCRATCH_THRESHOLD: 0.6,
       PARTICLE_COUNT: 15,
-      CANVAS_WIDTH: 250,
-      CANVAS_HEIGHT: 220,
+      CANVAS_WIDTH: 300,
+      CANVAS_HEIGHT: 260,
       SCRATCH_RADIUS: 25,
       PIXEL_SAMPLE_RATE: 40
     };
@@ -173,9 +171,9 @@
     const socket = io();
     let currentRole = '';
     let currentRoom = '';
+    let creatorName = '';
     let hasScratched = false;
     let isMyTurn = false;
-    let creatorName = '';
     let lastEmitTime = 0;
 
     // Create colored heart particles
@@ -232,7 +230,6 @@
         currentRole = 'creator';
         document.getElementById('inviteBtn').style.display = 'block';
         document.getElementById('creatorName').textContent = creatorName;
-        document.getElementById('necklace').style.display = 'block';
         joinGame();
         closeRoomPopup();
       }
@@ -243,6 +240,7 @@
       socket.emit('join', currentRoom);
       document.getElementById('welcomeScreen').classList.add('hidden');
       document.getElementById('gameScreen').style.display = 'flex';
+      setupCanvas();
     }
 
     // Invite functionality
@@ -290,7 +288,7 @@
       if (!state.scratched) {
         hasScratched = false;
         setupCanvas();
-        document.getElementById('doneBtn').classList.add('hidden');
+        document.getElementById('refreshBtn').classList.add('hidden');
       }
       updateTurnIndicator();
     });
@@ -299,14 +297,14 @@
       heartText.textContent = '♥️ Scratch to reveal!';
       hasScratched = false;
       setupCanvas();
-      document.getElementById('doneBtn').classList.add('hidden');
+      document.getElementById('refreshBtn').classList.add('hidden');
       isMyTurn = (currentRole === data.turn);
       updateTurnIndicator();
     });
 
     socket.on('reveal', (dare) => {
       heartText.textContent = dare;
-      document.getElementById('doneBtn').classList.remove('hidden');
+      document.getElementById('refreshBtn').classList.remove('hidden');
       updateTurnIndicator();
     });
 
@@ -319,7 +317,7 @@
         indicator.textContent = '⏳ Waiting for partner...';
         indicator.style.color = '#ff9800';
       } else if (hasScratched) {
-        indicator.textContent = '💖 Dare revealed on both screens!';
+        indicator.textContent = '💖 Dare revealed! Press Next Turn';
         indicator.style.color = '#ff6b6b';
       }
     }
@@ -348,7 +346,7 @@
       if (!isDrawing || !isMyTurn) return;
       
       const now = Date.now();
-      if (now - lastEmitTime < 16) return; // Debounce to ~60fps
+      if (now - lastEmitTime < 16) return;
       lastEmitTime = now;
 
       const rect = canvas.getBoundingClientRect();
@@ -370,7 +368,6 @@
         const pixels = imageData.data;
         let transparent = 0;
         
-        // Sample every 10th pixel for performance
         for (let i = 3; i < pixels.length; i += CONFIG.PIXEL_SAMPLE_RATE) {
           if (pixels[i] < 128) transparent++;
         }
@@ -385,11 +382,10 @@
       }
     }
 
-    // Done button
-    function markDone() {
-      socket.emit('done', currentRoom);
-      isMyTurn = !isMyTurn;
-      document.getElementById('doneBtn').classList.add('hidden');
+    // Next Turn button
+    function nextTurn() {
+      socket.emit('next-turn', currentRoom);
+      document.getElementById('refreshBtn').classList.add('hidden');
       updateTurnIndicator();
     }
 
@@ -416,11 +412,8 @@
       creatorName = roomParam;
       currentRole = 'joiner';
       document.getElementById('inviteBtn').style.display = 'none';
-      document.getElementById('necklace').style.display = 'block';
       document.getElementById('creatorName').textContent = creatorName;
       setTimeout(() => joinGame(), 100);
-    } else {
-      document.getElementById('necklace').style.display = 'none';
     }
   </script>
 </body>
