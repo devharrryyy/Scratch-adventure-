@@ -13,7 +13,7 @@ const io = new Server(server, {
 });
 
 app.use(express.static(__dirname));
-app.get("/", (_, res) => res.sendFile(path.join(__dirname, "index.html")));
+app.get("/", (_, res) => res.sendFile(path.join(__dirname, "index.html"));
 
 const dares = [
   "Apni ek cute selfie bhejo",
@@ -136,17 +136,37 @@ function getRandomDare() {
 io.on("connection", socket => {
   console.log("✅ User connected:", socket.id);
 
-  socket.on("check-room", room => socket.emit('room-check-result', !!rooms[room]));
+  socket.on("check-room", room => {
+    // Check if room exists - link remains valid even if creator disconnects
+    socket.emit('room-check-result', !!rooms[room]);
+  });
 
   socket.on("join", room => {
-    if (rooms[room] && rooms[room].joiner) { socket.emit('error', 'Room is full or closed'); return; }
+    // If room is full (has joiner already), block new joins
+    if (rooms[room] && rooms[room].joiner) { 
+      socket.emit('error', 'Room is full or closed'); 
+      return; 
+    }
+    
     socket.join(room);
+    
     if (!rooms[room]) {
-      rooms[room] = { dare: getRandomDare(), scratched: false, turn: 'creator', creator: socket.id, joiner: null, joinerJoined: false };
+      // New room creation
+      rooms[room] = { 
+        dare: getRandomDare(), 
+        scratched: false, 
+        turn: 'creator', 
+        creator: socket.id, 
+        joiner: null, 
+        joinerJoined: false 
+      };
       socket.emit('role', 'creator');
     } else {
-      rooms[room].joiner = socket.id; rooms[room].joinerJoined = true;
-      socket.emit('role', 'joiner'); socket.to(room).emit('joiner-joined');
+      // Join existing room as joiner
+      rooms[room].joiner = socket.id; 
+      rooms[room].joinerJoined = true;
+      socket.emit('role', 'joiner');
+      socket.to(room).emit('joiner-joined');
     }
     socket.emit("state", rooms[room]);
   });
@@ -173,11 +193,13 @@ io.on("connection", socket => {
 
   socket.on("disconnect", () => {
     console.log("❌ User disconnected:", socket.id);
+    // Room is NOT deleted on disconnect - link remains valid forever
+    // Only update joiner status if joiner disconnects
     for (const room in rooms) {
-      if (rooms[room].creator === socket.id) {
-        io.to(room).emit('room-closed'); delete rooms[room]; console.log(`🗑️ Room ${room} deleted`);
-      } else if (rooms[room].joiner === socket.id) {
-        rooms[room].joiner = null; rooms[room].joinerJoined = false; io.to(room).emit('joiner-left');
+      if (rooms[room].joiner === socket.id) {
+        rooms[room].joiner = null; 
+        rooms[room].joinerJoined = false; 
+        io.to(room).emit('joiner-left');
       }
     }
   });
