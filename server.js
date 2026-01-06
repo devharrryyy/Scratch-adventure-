@@ -88,8 +88,12 @@ io.on("connection", socket => {
       rooms[room].joiner = socket.id; 
       rooms[room].joinerJoined = true;
       socket.emit('role', 'joiner');
-      // FIXED: Explicitly send state to both users
+      
+      // FIXED: Emit to creator's socket ID explicitly
       io.to(rooms[room].creator).emit("state", rooms[room]);
+      io.to(rooms[room].creator).emit('joiner-joined');
+      
+      // Send state to joiner
       socket.emit("state", rooms[room]);
     }
   });
@@ -111,7 +115,10 @@ io.on("connection", socket => {
   });
 
   socket.on("user-active", data => {
-    if (rooms[data.room]) socket.to(data.room).emit("user-active-status", { active: data.active });
+    if (rooms[data.room]) {
+      // Broadcast to everyone else in the room
+      io.to(data.room).emit("user-active-status", { active: data.active });
+    }
   });
 
   socket.on("disconnect", () => {
