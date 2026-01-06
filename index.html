@@ -1,3 +1,4 @@
+ 
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -236,12 +237,12 @@
 
     // ===== SOCKET =====
     socket.on('role',role=>{ currentRole=role; isMyTurn=(role==='creator'); if(role==='joiner')document.getElementById('inviteBtn').style.display='none'; updateUI(); });
-    socket.on('state',state=>{ joinerJoined=state.joinerJoined; hasScratched=state.scratched; document.getElementById('dareText').textContent = state.scratched?state.dare:'♥️ Scratch to reveal!'; if(!state.scratched){setupCanvas();document.getElementById('completeBtn').classList.add('hidden')}else{document.getElementById('completeBtn').classList.remove('hidden')} updateUI(); });
+    socket.on('state',state=>{ joinerJoined=state.joinerJoined; hasScratched=state.scratched; document.getElementById('dareText').textContent = state.scratched?state.dare:'♥️ Scratch to reveal!'; updateUI(); });
     socket.on('joiner-joined',()=>{joinerJoined=true;updateUI()});
     socket.on('joiner-left',()=>{joinerJoined=false;updateUI()});
     socket.on('user-active-status',data=>{ const dot=document.querySelector('#joinerStatus .status-dot'); dot.className=data.active?'status-dot status-online':'status-dot status-offline' });
-    socket.on('new-turn',data=>{ hasScratched=false; document.getElementById('dareText').textContent='♥️ Scratch to reveal!'; document.getElementById('completeBtn').classList.add('hidden'); setupCanvas(); isMyTurn=(currentRole===data.turn); updateUI(); });
-    socket.on('reveal',dare=>{ document.getElementById('dareText').textContent=dare; document.getElementById('completeBtn').classList.remove('hidden'); hasScratched=true; updateUI(); });
+    socket.on('new-turn',data=>{ hasScratched=false; document.getElementById('dareText').textContent='♥️ Scratch to reveal!'; updateUI(); });
+    socket.on('reveal',dare=>{ document.getElementById('dareText').textContent=dare; hasScratched=true; updateUI(); });
     socket.on('room-closed',()=>{ alert('🚫 Room closed by creator. Redirecting...'); window.location.href=window.location.pathname });
     socket.on('error',msg=>{ alert(`❌ ${msg}`); if(msg.includes('closed'))window.location.href=window.location.pathname });
 
@@ -253,7 +254,8 @@
       else if(isMyTurn&&!hasScratched)ind.textContent='✨ Your turn! Scratch to reveal';
       else if(!isMyTurn&&!hasScratched)ind.textContent='⏳ Waiting for partner to scratch...';
       else if(hasScratched)ind.textContent='💖 Dare revealed! Tap "Dare Completed"';
-      if(hasScratched&&joinerJoined)btn.classList.remove('hidden'); else btn.classList.add('hidden');
+      // FIXED: Show button only when dare is scratched
+      if(hasScratched) btn.classList.remove('hidden'); else btn.classList.add('hidden');
     }
     function completeDare(){ if(!hasScratched||!joinerJoined)return; socket.emit('done',currentRoom); document.getElementById('completeBtn').classList.add('hidden'); hasScratched=false; setupCanvas(); updateUI(); }
 
