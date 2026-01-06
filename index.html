@@ -1,4 +1,3 @@
- 
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -78,7 +77,7 @@
     @keyframes pulse{0%,100%{opacity:.7}50%{opacity:1}}
     .name-plate{background:linear-gradient(45deg,gold,#ffd700);padding:10px 25px;border-radius:25px;font-size:15px;color:#333;font-weight:bold;box-shadow:0 5px 15px rgba(0,0,0,.2);margin:10px 0;text-align:center}
     .dare-box{position:relative;width:350px;height:120px;margin:20px 0;border-radius:15px;overflow:hidden;box-shadow:0 5px 20px rgba(0,0,0,.2)}
-    #scratchCanvas{position:absolute;top:0;left:0;width:100%;height:100%;background:#ff0000;cursor:crosshair;border-radius:15px;z-index:2}
+    #scratchCanvas{position:absolute;top:0;left:0;width:100%;height:100%;background:#ff0000;cursor:crosshair;border-radius:15px;z-index:2;touch-action:none}
     #dareText{position:absolute;width:100%;height:100%;display:flex;align-items:center;justify-content:center;text-align:center;color:#333;font-weight:bold;font-size:17px;padding:15px;background:#fff;border-radius:15px;z-index:1;line-height:1.4;word-wrap:break-word}
     .complete-btn{padding:15px 40px;font-size:1.1em;background:linear-gradient(45deg,#4CAF50,#66BB6A);border:none;border-radius:30px;color:#fff;cursor:pointer;font-weight:bold;margin:20px 0;transition:all .3s;text-align:center}
     .complete-btn:hover{transform:scale(1.05);box-shadow:0 8px 25px rgba(76,175,80,.4)}
@@ -123,12 +122,12 @@
     </div>
     <div class="center-content">
       <h2 class="game-title">🎀Scratch Adventure🎀</h2>
-      <p class="instruction">Scratch the field with your finger</p>
+      <p class="instruction">Scratch the red field with your finger👉🏻🖕🏻</p>
       <div class="turn-indicator" id="turnIndicator">Waiting for partner to join...</div>
       <div class="name-plate" id="creatorName">Room</div>
       <div class="dare-box" id="dareBox">
         <canvas id="scratchCanvas"></canvas>
-        <div id="dareText">♥️ Scratch to reveal!</div>
+        <div id="dareText">🫀Scratch to reveal!</div>
       </div>
       <button class="complete-btn hidden" id="completeBtn" onclick="completeDare()">✅ Dare Completed</button>
     </div>
