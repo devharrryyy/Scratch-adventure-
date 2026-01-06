@@ -236,10 +236,16 @@
 
     // ===== SOCKET =====
     socket.on('role',role=>{ currentRole=role; isMyTurn=(role==='creator'); if(role==='joiner')document.getElementById('inviteBtn').style.display='none'; updateUI(); });
-    socket.on('state',state=>{ joinerJoined=state.joinerJoined; hasScratched=state.scratched; document.getElementById('dareText').textContent = state.scratched?state.dare:'♥️ Scratch to reveal!'; updateUI(); });
-    socket.on('joiner-joined',()=>{joinerJoined=true;updateUI()});
-    socket.on('joiner-left',()=>{joinerJoined=false;updateUI()});
-    socket.on('user-active-status',data=>{ const dot=document.querySelector('#joinerStatus .status-dot'); dot.className=data.active?'status-dot status-online':'status-dot status-offline' });
+    socket.on('state',state=>{ 
+      console.log('State received:', state); // Debug log
+      joinerJoined=state.joinerJoined; 
+      hasScratched=state.scratched; 
+      document.getElementById('dareText').textContent = state.scratched?state.dare:'♥️ Scratch to reveal!'; 
+      updateUI(); 
+    });
+    socket.on('joiner-joined',()=>{console.log('Joiner joined event'); joinerJoined=true;updateUI()});
+    socket.on('joiner-left',()=>{console.log('Joiner left event'); joinerJoined=false;updateUI()});
+    socket.on('user-active-status',data=>{ console.log('Active status:', data.active); const dot=document.querySelector('#joinerStatus .status-dot'); dot.className=data.active?'status-dot status-online':'status-dot status-offline' });
     socket.on('new-turn',data=>{ hasScratched=false; document.getElementById('dareText').textContent='♥️ Scratch to reveal!'; updateUI(); });
     socket.on('reveal',dare=>{ document.getElementById('dareText').textContent=dare; hasScratched=true; updateUI(); });
     socket.on('room-closed',()=>{ alert('🚫 Room closed by creator. Redirecting...'); window.location.href=window.location.pathname });
