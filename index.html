@@ -1,4 +1,3 @@
- 
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -164,7 +163,7 @@
       <h2 class="game-title">🎀Scratch Adventure🎀</h2>
       <p class="instruction">Scratch the red ♥️ field with your finger</p>
       <div class="turn-indicator" id="turnIndicator">Preparing game...</div>
-      <div class="name-plate" id="creatorName">Room</div>
+      <div className="name-plate" id="creatorName">Room</div>
       <div class="dare-box" id="dareBox">
         <canvas id="scratchCanvas"></canvas>
         <div id="dareText">🫀Scratch to reveal!</div>
@@ -712,18 +711,13 @@
     document.addEventListener('visibilitychange', () => {
       state.isPageActive = !document.hidden;
       
-      if (!document.hidden && state.currentRoom) {
-        // Page became active - rejoin if disconnected
-        if (state.socket && !state.socket.connected) {
-          showConnectionStatus('🔄 Reconnecting...');
-          state.socket.connect();
-        } else if (state.socket && state.socket.connected) {
-          // Rejoin room to ensure state sync
-          state.socket.emit('join', {
-            room: state.currentRoom,
-            name: state.creatorName
-          });
-        }
+      // DO NOT rejoin on visibility change - let Socket.IO handle reconnection
+      // Just update active status
+      if (!document.hidden && state.currentRoom && state.socket && state.socket.connected) {
+        state.socket.emit('user-active', {
+          room: state.currentRoom,
+          active: true
+        });
       }
     });
 
