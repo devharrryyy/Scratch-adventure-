@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Scratch Adventure 💕</title>
+  <title>Scratch Adventure 🫀🫂</title>
   <style>
     *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
     html,body{height:100%;overflow:hidden}
@@ -122,7 +122,7 @@
     </div>
     <div class="center-content">
       <h2 class="game-title">🎀Scratch Adventure🎀</h2>
-      <p class="instruction">Scratch the red field with your finger👉🏻🖕🏻</p>
+      <p class="instruction">Scratch the red ♥️ field with your finger</p>
       <div class="turn-indicator" id="turnIndicator">Waiting for partner to join...</div>
       <div class="name-plate" id="creatorName">Room</div>
       <div class="dare-box" id="dareBox">
@@ -214,6 +214,7 @@
       ctx.fillStyle = '#ff0000'; ctx.fillRect(0,0,CONFIG.CANVAS_WIDTH,CONFIG.CANVAS_HEIGHT);
       document.getElementById('dareText').style.background = '#fff';
       document.getElementById('dareText').style.color = '#333';
+      canvas.style.touchAction = 'none';
       ctx.globalCompositeOperation = 'destination-out';
     }
 
