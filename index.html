@@ -1,4 +1,3 @@
- 
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -254,7 +253,6 @@
       else if(isMyTurn&&!hasScratched)ind.textContent='✨ Your turn! Scratch to reveal';
       else if(!isMyTurn&&!hasScratched)ind.textContent='⏳ Waiting for partner to scratch...';
       else if(hasScratched)ind.textContent='💖 Dare revealed! Tap "Dare Completed"';
-      // FIXED: Show button only when dare is scratched
       if(hasScratched) btn.classList.remove('hidden'); else btn.classList.add('hidden');
     }
     function completeDare(){ if(!hasScratched||!joinerJoined)return; socket.emit('done',currentRoom); document.getElementById('completeBtn').classList.add('hidden'); hasScratched=false; setupCanvas(); updateUI(); }
