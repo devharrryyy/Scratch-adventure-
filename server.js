@@ -1,4 +1,3 @@
- 
 const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
@@ -27,7 +26,7 @@ const dares = [
   "Ek cheez batao jo tumhe smile deti h",
   "Voice note me sirf 'hey daddy' bolo😁",
   "Ek secret btao jo koi ni janta tunhre alava",
-  "ek mirror pic send kro back body ki(NAKED)",
+  "Apni playlist ka last song batao",
   "Ek apna fun GIF bhejo",
   "Apna relationship status describe karo",
   "Ek random memory share karo",
@@ -36,7 +35,7 @@ const dares = [
   "Apna favourite person batao",
   "Ek dark joke sunao",
   "kabhi ghar se paise chori kre hai ?",
-  "Bra strap ki snap bna kr send kro",
+  "Kisi film ka dialogue bolo",
   "Ek song ki ek line gaake sunao",
   "Apni favourite movie batao",
   "Ek childhood story share karo",
@@ -46,7 +45,7 @@ const dares = [
   "Ek fake love story banao",
   "Apna funny face bna kr pic bhejo",
   "Ek compliment khud ko do",
-  "pompom ko hath se hide krke photo bhejo(NAKED)",
+  "Ek joke sunao",
   "mummy se bolo mujhe love marriage krni hai(video bhejo)",
   "Ek dream vacation spot batao",
   "Apna favourite game batao",
@@ -140,14 +139,27 @@ io.on("connection", socket => {
   socket.on("check-room", room => socket.emit('room-check-result', !!rooms[room]));
 
   socket.on("join", room => {
-    if (rooms[room] && rooms[room].joiner) { socket.emit('error', 'Room is full or closed'); return; }
+    // agar room full ho ya creator ne exit kiya ho to na aane de
+    if (rooms[room] && rooms[room].joiner) { 
+      socket.emit('error', 'Room is full or closed'); 
+      return; 
+    }
     socket.join(room);
     if (!rooms[room]) {
-      rooms[room] = { dare: getRandomDare(), scratched: false, turn: 'creator', creator: socket.id, joiner: null, joinerJoined: false };
+      rooms[room] = { 
+        dare: getRandomDare(), 
+        scratched: false, 
+        turn: 'creator', 
+        creator: socket.id, 
+        joiner: null, 
+        joinerJoined: false 
+      };
       socket.emit('role', 'creator');
     } else {
-      rooms[room].joiner = socket.id; rooms[room].joinerJoined = true;
-      socket.emit('role', 'joiner'); socket.to(room).emit('joiner-joined');
+      rooms[room].joiner = socket.id; 
+      rooms[room].joinerJoined = true;
+      socket.emit('role', 'joiner'); 
+      socket.to(room).emit('joiner-joined');
     }
     socket.emit("state", rooms[room]);
   });
@@ -172,7 +184,7 @@ io.on("connection", socket => {
     if (rooms[data.room]) socket.to(data.room).emit("user-active-status", { active: data.active });
   });
 
-  // NEW: explicit exit event triggered only by creator clicking exit icon
+  // ONLY creator exit icon triggers room deletion
   socket.on("exit-room", room => {
     if (!rooms[room] || rooms[room].creator !== socket.id) return;
     io.to(room).emit('room-closed');
@@ -180,14 +192,18 @@ io.on("connection", socket => {
     console.log(`🗑️ Room ${room} deleted by creator exit`);
   });
 
+  // Auto-rejoin support: keep room alive on any disconnect except explicit creator exit
   socket.on("disconnect", () => {
     console.log("❌ User disconnected:", socket.id);
     for (const room in rooms) {
-      // only delete room if creator explicitly fired exit-room
       if (rooms[room].joiner === socket.id) {
         rooms[room].joiner = null;
         rooms[room].joinerJoined = false;
         io.to(room).emit('joiner-left');
+      }
+      // creator disconnect: only mark offline, room stays alive
+      if (rooms[room].creator === socket.id) {
+        io.to(room).emit('creator-offline');
       }
     }
   });
