@@ -32,13 +32,13 @@ const dares = [
   "Ek motivational quote bhejo", "Apna favourite movie genre batao", "Ek childhood dream batao", "Apna favourite book batao",
   "Ek superpower chuno", "Apna favourite cartoon batao", "Ek magic trick dikhao", "Apna favourite sport batao",
   "Ek tongue twister bolo", "Apna favourite festival batao", "Ek random fact share karo", "Apna favourite app batao",
-  "Ek mimicry karo", "Apna favourite dessert batao", "Ek bucket-list item share karo", "Apna favourite subject batao",
+  "Ek mimicry karo", "ek bra pehen kr snap bhejo", "Ek bra pehen kr snap bhejo", "Apna favourite subject batao",
   "Ek 1 min dance karo or video bana ke bhejo", "Apna favourite sport batao", "Ek childhood photo send karo",
   "Apna bf/gf ki pic send kro", "Ek funny nickname do mujhe", "Apna favourite time of day batao",
   "Ek dream job batao", "Apna favourite emoji combo batao", "Ek random compliment do random ko", "Apna favourite weather batao",
   "Ek secret talent reveal karo", "Apna favourite quote batao", "Ek virtual hug bhejo", "Apna favourite place in home batao",
   "Ek imaginary pet name batao", "Apna favourite candy batao", "Ek 3-word story likho", "Apna favourite drink batao",
-  "Ek childhood game yaad karo", "Apna favourite song mood batao", "Ek dream car name btao", "Apna favourite TV show batao",
+  "Ek childhood game yaad karo", "bra strap ki snap bhejo with face", "Ek dream car name btao", "Apna favourite TV show batao",
   "Ek random act of kindness karo", "Apna phon number batao", "Ek kiss bhejo video me", "Apna favourite scent memory batao",
   "Ek nightmare share karo", "tunhre kitne fake account hai batao", "Ek 15 second singing clip bhejo",
   "Apna favourite ice-cream flavour batao", "Ek friend ka naam batao jiske liye feeling hai", "tumhra body count btao",
@@ -88,6 +88,7 @@ io.on("connection", socket => {
       rooms[room].joiner = socket.id; 
       rooms[room].joinerJoined = true;
       socket.emit('role', 'joiner');
+      // CRITICAL FIX: Emit state to BOTH users when joiner joins
       io.to(room).emit("state", rooms[room]);
     }
   });
