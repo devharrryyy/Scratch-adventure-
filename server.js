@@ -14,7 +14,6 @@ const io = new Server(server, {
 
 app.use(express.static(__dirname));
 
-// Simpler syntax to avoid any parsing issues
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
@@ -84,13 +83,13 @@ io.on("connection", socket => {
         joinerJoined: false 
       };
       socket.emit('role', 'creator');
+      socket.emit("state", rooms[room]);
     } else {
       rooms[room].joiner = socket.id; 
       rooms[room].joinerJoined = true;
       socket.emit('role', 'joiner');
-      socket.to(room).emit('joiner-joined');
+      io.to(room).emit("state", rooms[room]);
     }
-    socket.emit("state", rooms[room]);
   });
 
   socket.on("scratch", data => socket.to(data.room).emit("scratch", data));
