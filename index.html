@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>Scratch Adventure 🫀🫂</title>
   <style>
     *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -10,14 +10,14 @@
     body{
       font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;
       background:linear-gradient(135deg,#ff9a9e 0%,#fecfef 50%,#fecfef 100%);
-      color:#fff;touch-action:none;position:fixed;width:100%;height:100vh
+      color:#fff;touch-action:none;position:fixed;width:100%;height:100%
     }
 
     /* ===== FLOATING PARTICLES ===== */
     .particles{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0}
     .particle{
       position:absolute;border-radius:50%;
-      animation:float 8s infinite ease-in-out;
+      animation:float 6s infinite ease-in-out;
       opacity:0;
     }
     .particle.heart{width:14px;height:14px;background:#ff6b6b}
@@ -26,23 +26,10 @@
     .particle.dot3{width:8px;height:8px;background:#2196F3}
     .particle.dot4{width:11px;height:11px;background:#9C27B0}
     @keyframes float{
-      0%, 100%{transform:translateY(0) translateX(0) scale(1);opacity:.8}
-      25%{transform:translateY(-15px) translateX(calc(var(--drift) * 0.3)) scale(0.9);opacity:.9}
-      50%{transform:translateY(-5px) translateX(calc(var(--drift) * -0.2)) scale(0.85);opacity:.8}
-      75%{transform:translateY(-20px) translateX(calc(var(--drift) * 0.5)) scale(0.95);opacity:.9}
-    }
-
-    /* ===== TEDDY IMAGES ===== */
-    .teddy-welcome{
-      width:200px;
-      height:200px;
-      margin-bottom:20px;
-      animation:glow 2s ease-in-out infinite alternate, titlePulse 2.5s ease-in-out infinite;
-    }
-    .teddy-game{
-      width:150px;
-      height:150px;
-      margin-bottom:15px;
+      0%{transform:translateY(100vh) translateX(0) scale(1);opacity:0}
+      10%{opacity:.8}
+      90%{opacity:.8}
+      100%{transform:translateY(-20px) translateX(var(--drift)) scale(.6);opacity:0}
     }
 
     /* ===== POPUPS ===== */
@@ -123,7 +110,6 @@
 
   <!-- ===== WELCOME SCREEN ===== -->
   <div class="welcome-screen" id="welcomeScreen">
-    <img src="teddy.png" class="teddy-welcome" alt="Teddy">
     <h1 class="main-title">💕 Scratch Adventure 💕</h1>
     <button class="create-btn" onclick="showRoomPopup()">Create Room</button>
   </div>
@@ -135,7 +121,6 @@
       <button class="top-btn invite-btn" id="inviteBtn" onclick="showInvitePopup()">🔗</button>
     </div>
     <div class="center-content">
-      <img src="teddy.png" class="teddy-game" alt="Teddy">
       <h2 class="game-title">🎀Scratch Adventure🎀</h2>
       <p class="instruction">Scratch the red ♥️ field with your finger</p>
       <div class="turn-indicator" id="turnIndicator">Waiting for partner to join...</div>
@@ -175,10 +160,9 @@
         const type = colors[Math.floor(Math.random()*colors.length)];
         p.className = 'particle '+type;
         p.style.left = Math.random()*100 + '%';
-        p.style.top = Math.random()*100 + '%';
         p.style.setProperty('--drift', (Math.random()*60 - 30) + 'px');
-        p.style.animationDelay = Math.random()*8 + 's';
-        p.style.animationDuration = (8 + Math.random()*4) + 's';
+        p.style.animationDelay = Math.random()*6 + 's';
+        p.style.animationDuration = (6 + Math.random()*4) + 's';
         container.appendChild(p);
       }
     }
@@ -236,18 +220,12 @@
 
     // ===== SOCKET =====
     socket.on('role',role=>{ currentRole=role; isMyTurn=(role==='creator'); if(role==='joiner')document.getElementById('inviteBtn').style.display='none'; updateUI(); });
-    socket.on('state',state=>{ 
-      console.log('State received:', state); // Debug log
-      joinerJoined=state.joinerJoined; 
-      hasScratched=state.scratched; 
-      document.getElementById('dareText').textContent = state.scratched?state.dare:'♥️ Scratch to reveal!'; 
-      updateUI(); 
-    });
-    socket.on('joiner-joined',()=>{console.log('Joiner joined event'); joinerJoined=true;updateUI()});
-    socket.on('joiner-left',()=>{console.log('Joiner left event'); joinerJoined=false;updateUI()});
-    socket.on('user-active-status',data=>{ console.log('Active status:', data.active); const dot=document.querySelector('#joinerStatus .status-dot'); dot.className=data.active?'status-dot status-online':'status-dot status-offline' });
-    socket.on('new-turn',data=>{ hasScratched=false; document.getElementById('dareText').textContent='♥️ Scratch to reveal!'; updateUI(); });
-    socket.on('reveal',dare=>{ document.getElementById('dareText').textContent=dare; hasScratched=true; updateUI(); });
+    socket.on('state',state=>{ joinerJoined=state.joinerJoined; hasScratched=state.scratched; document.getElementById('dareText').textContent = state.scratched?state.dare:'♥️ Scratch to reveal!'; if(!state.scratched){setupCanvas();document.getElementById('completeBtn').classList.add('hidden')}else{document.getElementById('completeBtn').classList.remove('hidden')} updateUI(); });
+    socket.on('joiner-joined',()=>{joinerJoined=true;updateUI()});
+    socket.on('joiner-left',()=>{joinerJoined=false;updateUI()});
+    socket.on('user-active-status',data=>{ const dot=document.querySelector('#joinerStatus .status-dot'); dot.className=data.active?'status-dot status-online':'status-dot status-offline' });
+    socket.on('new-turn',data=>{ hasScratched=false; document.getElementById('dareText').textContent='♥️ Scratch to reveal!'; document.getElementById('completeBtn').classList.add('hidden'); setupCanvas(); isMyTurn=(currentRole===data.turn); updateUI(); });
+    socket.on('reveal',dare=>{ document.getElementById('dareText').textContent=dare; document.getElementById('completeBtn').classList.remove('hidden'); hasScratched=true; updateUI(); });
     socket.on('room-closed',()=>{ alert('🚫 Room closed by creator. Redirecting...'); window.location.href=window.location.pathname });
     socket.on('error',msg=>{ alert(`❌ ${msg}`); if(msg.includes('closed'))window.location.href=window.location.pathname });
 
@@ -259,7 +237,7 @@
       else if(isMyTurn&&!hasScratched)ind.textContent='✨ Your turn! Scratch to reveal';
       else if(!isMyTurn&&!hasScratched)ind.textContent='⏳ Waiting for partner to scratch...';
       else if(hasScratched)ind.textContent='💖 Dare revealed! Tap "Dare Completed"';
-      if(hasScratched) btn.classList.remove('hidden'); else btn.classList.add('hidden');
+      if(hasScratched&&joinerJoined)btn.classList.remove('hidden'); else btn.classList.add('hidden');
     }
     function completeDare(){ if(!hasScratched||!joinerJoined)return; socket.emit('done',currentRoom); document.getElementById('completeBtn').classList.add('hidden'); hasScratched=false; setupCanvas(); updateUI(); }
 
