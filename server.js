@@ -125,7 +125,7 @@ const dares = [
   "Apna favourite sound of nature batao",
   "Ek 15 second actor ki mimicry karo (video me)",
   "Apna favourite sppt btao",
-  "jab tum sad/upset hote ho to kya krna psnd krte ho"
+  "jab tum sad/upset hote ho to kya krna psnd krte ho",
 ];
 
 const rooms = {};
