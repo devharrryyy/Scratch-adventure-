@@ -17,7 +17,7 @@
     .particles{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0}
     .particle{
       position:absolute;border-radius:50%;
-      animation:float 6s infinite ease-in-out;
+      animation:float 8s infinite ease-in-out;
       opacity:0;
     }
     .particle.heart{width:14px;height:14px;background:#ff6b6b}
@@ -26,10 +26,23 @@
     .particle.dot3{width:8px;height:8px;background:#2196F3}
     .particle.dot4{width:11px;height:11px;background:#9C27B0}
     @keyframes float{
-      0%{transform:translateY(100vh) translateX(0) scale(1);opacity:0}
-      10%{opacity:.8}
-      90%{opacity:.8}
-      100%{transform:translateY(-20px) translateX(var(--drift)) scale(.6);opacity:0}
+      0%, 100%{transform:translateY(0) translateX(0) scale(1);opacity:.8}
+      25%{transform:translateY(-15px) translateX(calc(var(--drift) * 0.3)) scale(0.9);opacity:.9}
+      50%{transform:translateY(-5px) translateX(calc(var(--drift) * -0.2)) scale(0.85);opacity:.8}
+      75%{transform:translateY(-20px) translateX(calc(var(--drift) * 0.5)) scale(0.95);opacity:.9}
+    }
+
+    /* ===== TEDDY IMAGES ===== */
+    .teddy-welcome{
+      width:200px;
+      height:200px;
+      margin-bottom:20px;
+      animation:glow 2s ease-in-out infinite alternate, titlePulse 2.5s ease-in-out infinite;
+    }
+    .teddy-game{
+      width:150px;
+      height:150px;
+      margin-bottom:15px;
     }
 
     /* ===== POPUPS ===== */
@@ -110,6 +123,7 @@
 
   <!-- ===== WELCOME SCREEN ===== -->
   <div class="welcome-screen" id="welcomeScreen">
+    <img src="teddy.png" class="teddy-welcome" alt="Teddy">
     <h1 class="main-title">💕 Scratch Adventure 💕</h1>
     <button class="create-btn" onclick="showRoomPopup()">Create Room</button>
   </div>
@@ -121,6 +135,7 @@
       <button class="top-btn invite-btn" id="inviteBtn" onclick="showInvitePopup()">🔗</button>
     </div>
     <div class="center-content">
+      <img src="teddy.png" class="teddy-game" alt="Teddy">
       <h2 class="game-title">🎀Scratch Adventure🎀</h2>
       <p class="instruction">Scratch the red ♥️ field with your finger</p>
       <div class="turn-indicator" id="turnIndicator">Waiting for partner to join...</div>
@@ -160,9 +175,10 @@
         const type = colors[Math.floor(Math.random()*colors.length)];
         p.className = 'particle '+type;
         p.style.left = Math.random()*100 + '%';
+        p.style.top = Math.random()*100 + '%';
         p.style.setProperty('--drift', (Math.random()*60 - 30) + 'px');
-        p.style.animationDelay = Math.random()*6 + 's';
-        p.style.animationDuration = (6 + Math.random()*4) + 's';
+        p.style.animationDelay = Math.random()*8 + 's';
+        p.style.animationDuration = (8 + Math.random()*4) + 's';
         container.appendChild(p);
       }
     }
