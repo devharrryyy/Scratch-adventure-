@@ -2,20 +2,60 @@ const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
 const path = require("path");
+const crypto = require("crypto");
 
 const app = express();
 const server = http.createServer(app);
+
+// ===== SECURITY & CONFIG =====
+const CORS_ORIGIN = process.env.FRONTEND_URL || (process.env.NODE_ENV === 'production' ? false : "*");
+const RATE_LIMIT_WINDOW = 10000; // 10 seconds
+const MAX_REQUESTS_PER_WINDOW = 50;
+const RECONNECTION_WINDOW_MS = 24 * 60 * 60 * 1000; // 24 hours
+
 const io = new Server(server, {
   cors: {
-    origin: process.env.FRONTEND_URL || "*",
-    methods: ["GET", "POST"]
+    origin: CORS_ORIGIN,
+    methods: ["GET", "POST"],
+    credentials: true
+  },
+  connectionStateRecovery: {
+    maxDisconnectionDuration: 2 * 60 * 1000, // 2 minutes recovery window
+    skipMiddlewares: true
   }
 });
 
 app.use(express.static(__dirname));
-app.get("/", (_, res) => res.sendFile(path.join(__dirname, "index.html")));
 
-// Constants
+// Rate limiting
+const rateLimit = new Map();
+function checkRateLimit(socketId) {
+  const now = Date.now();
+  const client = rateLimit.get(socketId) || { count: 0, windowStart: now };
+  
+  if (now - client.windowStart > RATE_LIMIT_WINDOW) {
+    client.count = 0;
+    client.windowStart = now;
+  }
+  
+  client.count++;
+  rateLimit.set(socketId, client);
+  return client.count <= MAX_REQUESTS_PER_WINDOW;
+}
+
+// Input sanitization
+function sanitizeInput(input, maxLength = 50) {
+  if (typeof input !== 'string') return '';
+  return input.replace(/[<>\"'&]/g, '').substring(0, maxLength).trim();
+}
+
+function generateRoomId() {
+  return crypto.randomBytes(4).toString('hex');
+}
+
+// ===== ROOM MANAGER =====
+const rooms = new Map();
+
 const ROLE_CREATOR = 'creator';
 const ROLE_JOINER = 'joiner';
 const ROOM_TIMEOUT_MS = 2 * 60 * 60 * 1000; // 2 hours
@@ -35,8 +75,8 @@ const dares = [
   "Ek dream vacation spot batao", "Apna favourite game batao", "Ek weird habit share karo",
   "Apna favourite flower batao", "Ek motivational quote bhejo", "Apna favourite movie genre batao",
   "Ek childhood dream batao", "Apna favourite book batao", "Ek superpower chuno",
-  "Apna favourite cartoon batao", "Ek magic trick dikhao", "Apna favourite sport batao",
-  "Ek tongue twister bolo", "Apna favourite festival batao", "Ek random fact share karo",
+  "Apna favourite cartoon batao", "Ek magic trick dikhao", "Apna favourite sport bato",
+  "Ek tongue twister bolo", "Apna favourite festival bato", "Ek random fact share karo",
   "Apna favourite app batao", "Ek mimicry karo", "Apna favourite dessert batao",
   "Ek bucket-list item share karo", "Apna favourite subject batao", "Ek 1 min dance karo or video bana ke bhejo",
   "Apna childhood photo send karo", "Apna bf/gf ki pic send kro", "Ek funny nickname do mujhe",
@@ -61,166 +101,319 @@ const dares = [
   "Ek 15 second actor ki mimicry karo (video me)", "Apna favourite sppt btao", "jab tum sad/upset hote ho to kya krna psnd krte ho"
 ];
 
-const rooms = new Map();
-
 function getRandomDare() {
   return dares[Math.floor(Math.random() * dares.length)];
 }
 
 function isValidRoom(room) {
-  return room && typeof room === 'string' && room.length > 0 && room.length <= 50;
+  return room && typeof room === 'string' && room.length > 0 && room.length <= 50 && /^[a-zA-Z0-9_-]+$/.test(room);
 }
 
 function cleanupRooms() {
   const now = Date.now();
+  let cleanedCount = 0;
+  
   for (const [roomId, room] of rooms.entries()) {
-    if (now - room.lastActivity > ROOM_TIMEOUT_MS) {
+    // Check if room is older than timeout OR both players disconnected for > 24h
+    const creatorDisconnected = !room.creator.connected && (now - room.creator.lastSeen > RECONNECTION_WINDOW_MS);
+    const joinerDisconnected = !room.joiner.connected && (now - room.joiner.lastSeen > RECONNECTION_WINDOW_MS);
+    
+    if ((now - room.lastActivity > ROOM_TIMEOUT_MS) || 
+        (creatorDisconnected && joinerDisconnected && !room.joinerJoined)) {
       io.to(roomId).emit('room-closed');
       rooms.delete(roomId);
-      console.log('Room ' + roomId + ' deleted due to inactivity');
+      cleanedCount++;
     }
+  }
+  
+  if (cleanedCount > 0) {
+    console.log(`[CLEANUP] Removed ${cleanedCount} inactive rooms`);
   }
 }
 
 // Run cleanup every hour
 setInterval(cleanupRooms, 60 * 60 * 1000);
 
+// ===== SOCKET.IO LOGIC =====
 io.on("connection", socket => {
-  console.log("User connected:", socket.id);
+  console.log(`[CONNECT] User ${socket.id} connected`);
+  rateLimit.set(socket.id, { count: 0, windowStart: Date.now() });
 
-  socket.on("check-room", room => {
-    if (!isValidRoom(room)) return socket.emit('room-check-result', false);
-    const roomData = rooms.get(room);
-    socket.emit('room-check-result', !!roomData && !roomData.joiner);
+  socket.on("check-room", (room) => {
+    if (!checkRateLimit(socket.id)) {
+      return socket.emit('error', 'Rate limit exceeded. Please wait...');
+    }
+    
+    const roomId = sanitizeInput(room);
+    if (!isValidRoom(roomId)) {
+      return socket.emit('room-check-result', { valid: false, error: 'Invalid room format' });
+    }
+    
+    const roomData = rooms.get(roomId);
+    const canJoin = !!roomData && !roomData.joiner.connected;
+    
+    socket.emit('room-check-result', {
+      valid: canJoin,
+      error: canJoin ? null : 'Room not found or full'
+    });
   });
 
-  socket.on("join", room => {
-    if (!isValidRoom(room)) return socket.emit('error', 'Invalid room ID');
+  socket.on("join", (data) => {
+    if (!checkRateLimit(socket.id)) {
+      return socket.emit('error', 'Rate limit exceeded. Please wait...');
+    }
     
-    const roomData = rooms.get(room);
-    const existingRoom = !!roomData;
+    const roomId = sanitizeInput(data.room);
+    const userName = sanitizeInput(data.name || roomId, 20);
     
-    // Check if room is full
-    if (existingRoom && roomData.joiner) { 
-      return socket.emit('error', 'Room is full or closed'); 
+    if (!isValidRoom(roomId)) {
+      return socket.emit('error', 'Invalid room format. Use only letters, numbers, hyphens and underscores.');
     }
 
-    socket.join(room);
+    const existingRoom = rooms.get(roomId);
+    
+    // Join or create room atomically
+    socket.join(roomId);
     
     if (!existingRoom) {
       // Create new room
-      rooms.set(room, { 
-        dare: getRandomDare(), 
-        scratched: false, 
-        turn: ROLE_CREATOR, 
-        creator: socket.id, 
-        joiner: null, 
-        joinerJoined: false,
-        lastActivity: Date.now()
-      });
-      socket.emit('role', ROLE_CREATOR);
+      const newRoom = {
+        id: roomId,
+        dare: getRandomDare(),
+        scratched: false,
+        turn: ROLE_CREATOR,
+        creator: {
+          id: userName,
+          socketId: socket.id,
+          connected: true,
+          lastSeen: Date.now()
+        },
+        joiner: {
+          id: null,
+          socketId: null,
+          connected: false,
+          lastSeen: 0
+        },
+        lastActivity: Date.now(),
+        createdAt: Date.now()
+      };
+      
+      rooms.set(roomId, newRoom);
+      currentRole = ROLE_CREATOR;
+      
+      socket.emit('role', { role: ROLE_CREATOR, name: userName });
+      socket.emit('state', newRoom);
+      
+      console.log(`[CREATE] Room "${roomId}" created by ${userName} (${socket.id})`);
+      
     } else {
-      // Check if creator is reconnecting
-      const creatorSocket = roomData.creator ? io.sockets.sockets.get(roomData.creator) : null;
+      // Room exists - handle reconnection or new joiner
+      const isCreatorReconnect = existingRoom.creator.id === userName && 
+                                  existingRoom.creator.socketId !== socket.id;
       
-      if (!creatorSocket) {
+      let assignedRole = null;
+      
+      if (isCreatorReconnect) {
         // Creator reconnecting
-        roomData.creator = socket.id;
-        socket.emit('role', ROLE_CREATOR);
-      } else {
+        existingRoom.creator.socketId = socket.id;
+        existingRoom.creator.connected = true;
+        existingRoom.creator.lastSeen = Date.now();
+        assignedRole = ROLE_CREATOR;
+        
+        console.log(`[RECONNECT] Creator ${userName} rejoined room "${roomId}"`);
+      } else if (!existingRoom.joiner.connected) {
         // New joiner
-        roomData.joiner = socket.id; 
-        roomData.joinerJoined = true;
-        socket.emit('role', ROLE_JOINER); 
-        socket.to(room).emit('joiner-joined');
+        existingRoom.joiner.id = userName;
+        existingRoom.joiner.socketId = socket.id;
+        existingRoom.joiner.connected = true;
+        existingRoom.joiner.lastSeen = Date.now();
+        existingRoom.joinerJoined = true;
+        assignedRole = ROLE_JOINER;
+        
+        console.log(`[JOIN] Joiner ${userName} joined room "${roomId}"`);
+        
+        // Notify creator
+        socket.to(roomId).emit('joiner-joined', {
+          name: userName,
+          socketId: socket.id
+        });
+      } else {
+        // Shouldn't happen due to check-room, but safety first
+        return socket.emit('error', 'Room is full');
       }
-      roomData.lastActivity = Date.now();
+      
+      existingRoom.lastActivity = Date.now();
+      
+      socket.emit('role', { role: assignedRole, name: userName });
+      io.to(roomId).emit('state', existingRoom);
+    }
+  });
+
+  socket.on("scratch", (data) => {
+    if (!checkRateLimit(socket.id)) return;
+    
+    const roomId = sanitizeInput(data.room);
+    const room = rooms.get(roomId);
+    
+    if (!room || room.scratched) return;
+    
+    // Validate sender is actual player
+    const isCreator = room.creator.socketId === socket.id;
+    const isJoiner = room.joiner.socketId === socket.id;
+    
+    if (!isCreator && !isJoiner) return;
+    
+    // Update last seen
+    room.lastActivity = Date.now();
+    
+    // Broadcast to other player
+    socket.to(room).emit("scratch", {
+      x: data.x,
+      y: data.y,
+      radius: data.radius
+    });
+    
+    console.log(`[SCRATCH] Room ${roomId}: ${isCreator ? 'Creator' : 'Joiner'} scratched at (${data.x}, ${data.y})`);
+  });
+
+  socket.on("scratch-complete", (roomId) => {
+    if (!checkRateLimit(socket.id)) return;
+    
+    const room = rooms.get(sanitizeInput(roomId));
+    if (!room || room.scratched) return;
+    
+    const isCreator = room.creator.socketId === socket.id;
+    const isJoiner = room.joiner.socketId === socket.id;
+    
+    if (!isCreator && !isJoiner) return;
+    
+    if (room.turn === ROLE_CREATOR && !isCreator) return;
+    if (room.turn === ROLE_JOINER && !isJoiner) return;
+    
+    room.scratched = true;
+    room.lastActivity = Date.now();
+    
+    io.to(roomId).emit("reveal", room.dare);
+    console.log(`[REVEAL] Room ${roomId}: Dare revealed`);
+  });
+
+  socket.on("done", (roomId) => {
+    if (!checkRateLimit(socket.id)) return;
+    
+    const room = rooms.get(sanitizeInput(roomId));
+    if (!room || !room.scratched) return;
+    
+    const isCreator = room.creator.socketId === socket.id;
+    const isJoiner = room.joiner.socketId === socket.id;
+    
+    if (!isCreator && !isJoiner) return;
+    
+    room.scratched = false;
+    room.turn = (room.turn === ROLE_CREATOR) ? ROLE_JOINER : ROLE_CREATOR;
+    room.dare = getRandomDare();
+    room.lastActivity = Date.now();
+    
+    io.to(roomId).emit('new-turn', {
+      dare: room.dare,
+      turn: room.turn
+    });
+    
+    console.log(`[TURN] Room ${roomId}: New turn for ${room.turn}`);
+  });
+
+  socket.on("user-active", (data) => {
+    if (!checkRateLimit(socket.id)) return;
+    
+    const room = rooms.get(sanitizeInput(data.room));
+    if (!room) return;
+    
+    const isCreator = room.creator.socketId === socket.id;
+    const isJoiner = room.joiner.socketId === socket.id;
+    
+    if (!isCreator && !isJoiner) return;
+    
+    if (isCreator) {
+      room.creator.connected = data.active;
+      room.creator.lastSeen = Date.now();
+    } else if (isJoiner) {
+      room.joiner.connected = data.active;
+      room.joiner.lastSeen = Date.now();
     }
     
-    socket.emit("state", rooms.get(room));
+    socket.to(data.room).emit("user-active-status", {
+      active: data.active,
+      role: isCreator ? ROLE_CREATOR : ROLE_JOINER
+    });
   });
 
-  socket.on("scratch", data => {
-    if (!data || !isValidRoom(data.room)) return;
-    const roomData = rooms.get(data.room);
-    if (!roomData || ![roomData.creator, roomData.joiner].includes(socket.id)) return;
-    socket.to(data.room).emit("scratch", data);
-  });
-
-  socket.on("scratch-complete", room => {
-    if (!isValidRoom(room)) return;
-    const roomData = rooms.get(room);
-    if (!roomData || roomData.scratched || ![roomData.creator, roomData.joiner].includes(socket.id)) return;
+  socket.on("exit-room", (roomId) => {
+    const room = rooms.get(sanitizeInput(roomId));
+    if (!room) return;
     
-    roomData.scratched = true;
-    roomData.lastActivity = Date.now();
-    io.to(room).emit("reveal", roomData.dare);
+    const isCreator = room.creator.socketId === socket.id;
+    
+    if (isCreator) {
+      io.to(roomId).emit('room-closed');
+      rooms.delete(roomId);
+      console.log(`[EXIT] Room ${roomId} closed by creator`);
+    }
   });
 
-  socket.on("done", room => {
-    if (!isValidRoom(room)) return;
-    const roomData = rooms.get(room);
-    if (!roomData || ![roomData.creator, roomData.joiner].includes(socket.id)) return;
+  socket.on("disconnect", (reason) => {
+    console.log(`[DISCONNECT] ${socket.id} disconnected: ${reason}`);
     
-    roomData.scratched = false;
-    roomData.turn = (roomData.turn === ROLE_CREATOR) ? ROLE_JOINER : ROLE_CREATOR;
-    roomData.dare = getRandomDare();
-    roomData.lastActivity = Date.now();
-    io.to(room).emit("new-turn", { dare: roomData.dare, turn: roomData.turn });
-  });
-
-  socket.on("user-active", data => {
-    if (!data || !isValidRoom(data.room)) return;
-    const roomData = rooms.get(data.room);
-    if (!roomData || ![roomData.creator, roomData.joiner].includes(socket.id)) return;
-    
-    roomData.lastActivity = Date.now();
-    socket.to(data.room).emit("user-active-status", { active: data.active });
-  });
-
-  socket.on("exit-room", room => {
-    if (!isValidRoom(room)) return;
-    const roomData = rooms.get(room);
-    if (!roomData || roomData.creator !== socket.id) return;
-    
-    io.to(room).emit('room-closed');
-    rooms.delete(room);
-    console.log('Room ' + room + ' deleted by creator exit');
-  });
-
-  socket.on("disconnect", () => {
-    console.log("User disconnected:", socket.id);
-    
-    for (const [roomId, roomData] of rooms.entries()) {
-      let roomUpdated = false;
-      
-      if (roomData.joiner === socket.id) {
-        roomData.joiner = null;
-        roomData.joinerJoined = false;
-        roomUpdated = true;
-        io.to(roomId).emit('joiner-left');
-      }
-      
-      if (roomData.creator === socket.id) {
-        roomUpdated = true;
-        io.to(roomId).emit('creator-offline');
-      }
-      
-      if (roomUpdated) {
-        roomData.lastActivity = Date.now();
+    // Mark user as disconnected but KEEP ROOM ALIVE
+    for (const [roomId, room] of rooms.entries()) {
+      if (room.creator.socketId === socket.id) {
+        room.creator.connected = false;
+        room.creator.lastSeen = Date.now();
+        io.to(roomId).emit('creator-status', { connected: false });
+        console.log(`[STATUS] Room ${roomId}: Creator disconnected`);
+      } else if (room.joiner.socketId === socket.id) {
+        room.joiner.connected = false;
+        room.joiner.lastSeen = Date.now();
+        io.to(roomId).emit('joiner-status', { connected: false });
+        console.log(`[STATUS] Room ${roomId}: Joiner disconnected`);
       }
     }
+    
+    rateLimit.delete(socket.id);
+  });
+});
+
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "index.html"));
+});
+
+// Health check endpoint
+app.get("/health", (req, res) => {
+  res.json({
+    status: 'ok',
+    rooms: rooms.size,
+    uptime: process.uptime()
   });
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log('Server running on port ' + PORT));
+server.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`🌍 CORS origin: ${CORS_ORIGIN || 'not set (production mode)'}`);
+});
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
-  console.log('SIGTERM received, shutting down gracefully');
+  console.log('[SHUTDOWN] SIGTERM received');
   server.close(() => {
-    console.log('Server closed');
+    console.log('[SHUTDOWN] Server closed');
     process.exit(0);
   });
+});
+
+process.on('uncaughtException', (err) => {
+  console.error('[ERROR] Uncaught exception:', err);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('[ERROR] Unhandled rejection at:', promise, 'reason:', reason);
 });
