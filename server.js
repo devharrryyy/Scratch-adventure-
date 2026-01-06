@@ -19,23 +19,23 @@ const dares = [
   "Apni ek cute selfie bhejo", "Sirf emojis me apna mood batao", "Ek honest compliment do mujhe",
   "Apna favourite song share karo", "5 minute tak fast reply karo", "Ek flirty line likho",
   "Apna nickname batao", "Ek cheez batao jo tumhe smile deti h", "Voice note me sirf 'hey daddy' bolo😁",
-  "Ek secret btao jo koi ni janta tunhre alava", "Apni playlist ka last song batao",
+  "Ek secret btao jo koi ni janta tunhre alava", "Apni bra strap ki snap bhejo",
   "Ek apna fun GIF bhejo", "Apna relationship status describe karo", "Ek random memory share karo",
   "Ek imaginary date idea batao", "Kisi ko tag karke unki taarif karo (story me)",
   "Apna favourite person batao", "Ek dark joke sunao", "kabhi ghar se paise chori kre hai ?",
-  "Kisi film ka dialogue bolo", "Ek song ki ek line gaake sunao", "Apni favourite movie batao",
+  "Apne hand se boobs hide krke photo bhejo(Naked)", "Ek song ki ek line gaake sunao", "Apni favourite movie batao",
   "Ek childhood story share karo", "Apna hidden talent dikhao", "following me se kisi random ko propose kro",
   "Apna favourite food batao", "Ek fake love story banao", "Apna funny face bna kr pic bhejo",
   "Ek compliment khud ko do", "Ek joke sunao", "mummy se bolo mujhe love marriage krni hai(video bhejo)",
   "Ek dream vacation spot batao", "Apna favourite game batao", "Ek weird habit share karo",
   "Apna favourite flower batao", "Ek motivational quote bhejo", "Apna favourite movie genre batao",
-  "Ek childhood dream batao", "Apna favourite book batao", "Ek superpower chuno",
+  "Ek childhood dream batao", "Mirro video bnao apne back body ki(NAKED)", "Ek superpower chuno",
   "Apna favourite cartoon batao", "Ek magic trick dikhao", "Apna favourite sport bato",
   "Ek tongue twister bolo", "Apna favourite festival bato", "Ek random fact share karo",
   "Apna favourite app batao", "Ek mimicry karo", "Apna favourite dessert batao",
   "Ek bucket-list item share karo", "Apna favourite subject batao", "Ek 1 min dance karo or video bana ke bhejo",
-  "Apna childhood photo send karo", "Apna bf/gf ki pic send kro", "Ek funny nickname do mujhe",
-  "Apna favourite time of day batao", "Ek dream job batao", "Apna favourite emoji combo batao",
+  "sexy song pr bra & penty me dance kro(video)", "Apna bf/gf ki pic send kro", "Ek funny nickname do mujhe",
+  "Apna favourite time of day batao", "Ek dream job batao", "Apni naked thighs ki snap bhejo (cross leds)",
   "Ek random compliment do random ko", "Apna favourite weather batao", "Ek secret talent reveal karo",
   "Apna favourite quote batao", "Ek virtual hug bhejo", "Apna favourite place in home batao",
   "Ek imaginary pet name batao", "Apna favourite candy batao", "Ek 3-word story likho",
@@ -45,7 +45,7 @@ const dares = [
   "Ek nightmare share karo", "tunhre kitne fake account hai batao", "Ek 15 second singing clip bhejo",
   "Apna favourite ice-cream flavour batao", "Ek friend ka naam batao jiske liye feeling hai",
   "tumhra body count btao", "Ek random dance move bhejo (video me)", "Apna favourite breakfast batao",
-  "Ek childhood fear share karo", "Apna favourite meme batao", "tunhra childhood trauma share kro",
+  "Ek childhood fear share karo", "ek snap kro pic penty or bra me", "tunhra childhood trauma share kro",
   "green chillies khankr vudeo me reaction dikhao", "tumhra dream house kaisa hoga ?",
   "kitne logo ko cheat kiya hai ?", "Ek random post pr author ko galiya do", "Apna favourite pizza topping batao",
   "kisi friend ki story pr like or comment kro(ganda)", "kisi ek friend ko galiya dekr block kro",
@@ -53,7 +53,7 @@ const dares = [
   "Apna favourite midnight snack batao", "Ek virtual kiss bhejo", "Apna weight btao",
   "online chocolate order kro mere liye", "Apna favourite childhood memories batao", "Ek devil laugh audio bhejo",
   "Apni real age batao", "Ek favourite planet name batao jaha jana chahte ho", "Apna favourite sound of nature batao",
-  "Ek 15 second actor ki mimicry karo (video me)", "Apna favourite sppt btao", "jab tum sad/upset hote ho to kya krna psnd krte ho"
+  "Ek 15 second actor ki mimicry karo (video me)", "Apna apne naked hips ki snap bhejo", "jab tum sad/upset hote ho to kya krna psnd krte ho"
 ];
 
 const rooms = {};
@@ -83,7 +83,6 @@ io.on("connection", socket => {
         joinerJoined: false 
       };
       socket.emit('role', 'creator');
-      socket.emit("state", rooms[room]);
     } else {
       // Check if creator is reconnecting (1 line addition)
       if (!io.sockets.sockets.get(rooms[room].creator)) { rooms[room].creator = socket.id; socket.emit('role', 'creator'); socket.emit("state", rooms[room]); return; }
@@ -92,8 +91,8 @@ io.on("connection", socket => {
       rooms[room].joinerJoined = true;
       socket.emit('role', 'joiner'); 
       socket.to(room).emit('joiner-joined');
-      socket.emit("state", rooms[room]);
     }
+    socket.emit("state", rooms[room]);
   });
 
   socket.on("scratch", data => socket.to(data.room).emit("scratch", data));
