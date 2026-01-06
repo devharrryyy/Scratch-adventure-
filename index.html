@@ -131,8 +131,8 @@
   <!-- ===== GAME SCREEN ===== -->
   <div class="game-screen" id="gameScreen">
     <div class="top-bar">
-      <button class="top-btn exit-btn" onclick="showExitConfirm()">❌</button>
-      <button class="top-btn invite-btn" id="inviteBtn" onclick="showInvitePopup()">🔗</button>
+      <button class="top-btn exit-btn" id="exitIcon">❌</button>
+      <button class="top-btn invite-btn" id="inviteBtn">🔗</button>
     </div>
     <div class="center-content">
       <img src="teddy.png" class="teddy-game" alt="Teddy">
@@ -144,7 +144,7 @@
         <canvas id="scratchCanvas"></canvas>
         <div id="dareText">🫀Scratch to reveal!</div>
       </div>
-      <button class="complete-btn hidden" id="completeBtn" onclick="completeDare()">✅ Dare Completed</button>
+      <button class="complete-btn hidden" id="completeBtn">Completed✅</button>
     </div>
     <div class="bottom-bar">
       <div class="profile-status"><div class="profile-icon">👤</div><span id="joinerStatus">Partner <span class="status-dot status-offline"></span></span></div>
@@ -302,6 +302,15 @@
         else{ alert('🚫 This invite link is no longer valid! Room closed by creator.'); window.location.href=window.location.pathname }
       });
     }
+
+    // ===== CREATOR EXIT ICON ONLY TRIGGERS ROOM-DELETE =====
+    document.getElementById('exitIcon').onclick = () => {
+      if (currentRole === 'creator') {
+        socket.emit('exit-room', currentRoom);
+      } else {
+        exitGame();
+      }
+    };
   </script>
 </body>
 </html>
