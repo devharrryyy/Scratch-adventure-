@@ -46,7 +46,7 @@ const dares = [
   "Apna funny face bna kr pic bhejo",
   "Ek compliment khud ko do",
   "Ek joke sunao",
-  "Apna favourite season batao",
+  "mummy se bolo mujhe love marriage krni hai(video bhejo)",
   "Ek dream vacation spot batao",
   "Apna favourite game batao",
   "Ek weird habit share karo",
