@@ -308,19 +308,6 @@
         else{ alert('🚫 This invite link is no longer valid! Room closed by creator.'); window.location.href=window.location.pathname }
       });
     }
-
-    // ===== RECONNECTION LOGIC FOR CREATOR =====
-    let reconnectionAttempts = 0;
-    socket.on('disconnect', () => {
-      if(currentRole === 'creator' && currentRoom) {
-        reconnectionAttempts++;
-        if(reconnectionAttempts < 5) {
-          setTimeout(() => {
-            socket.emit('rejoin-room', { room: currentRoom });
-          }, 1000);
-        }
-      }
-    });
   </script>
 </body>
 </html>
