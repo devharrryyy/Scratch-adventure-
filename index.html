@@ -1,8 +1,9 @@
+ 
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>Scratch Adventure 🫀🫂</title>
   <style>
     *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -10,7 +11,7 @@
     body{
       font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;
       background:linear-gradient(135deg,#ff9a9e 0%,#fecfef 50%,#fecfef 100%);
-      color:#fff;touch-action:none;position:fixed;width:100%;height:calc(var(--vh, 1vh) * 100)
+      color:#fff;touch-action:none;position:fixed;width:100%;height:100%
     }
 
     /* ===== FLOATING PARTICLES ===== */
@@ -154,14 +155,6 @@
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
-    // Fix viewport height for mobile browsers
-    function setViewportHeight() {
-      const vh = window.innerHeight * 0.01;
-      document.documentElement.style.setProperty('--vh', `${vh}px`);
-    }
-    setViewportHeight();
-    window.addEventListener('resize', setViewportHeight);
-
     // ===== CONFIG =====
     const CONFIG = {
       SCRATCH_THRESHOLD: 0.25,
