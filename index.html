@@ -56,7 +56,6 @@
 
     /* ===== WELCOME SCREEN + ANIMATIONS ===== */
     .welcome-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;position:relative;z-index:1;padding-top:env(safe-area-inset-top, 0px);padding-bottom:env(safe-area-inset-bottom, 0px)}
-    /* title */
     .main-title{
       font-size:4em;margin-bottom:30px;
       background:linear-gradient(45deg,#ff6b6b,#ffd93d);
@@ -66,7 +65,6 @@
     }
     @keyframes glow{from{filter:drop-shadow(0 0 10px rgba(255,107,107,.5))}to{filter:drop-shadow(0 0 20px rgba(255,217,61,.8))}}
     @keyframes titlePulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
-    /* button */
     .create-btn{
       padding:18px 50px;font-size:1.2em;
       background:linear-gradient(45deg,#ff6b6b,#ff8787);
@@ -151,7 +149,7 @@
         <canvas id="scratchCanvas"></canvas>
         <div id="dareText">🫀Scratch to reveal!</div>
       </div>
-      <button class="complete-btn hidden" id="completeBtn" onclick="completeDare()">Completed</button>
+      <button class="complete-btn hidden" id="completeBtn" onclick="completeDare()">✅ Dare Completed</button>
     </div>
     <div class="bottom-bar">
       <div class="profile-status"><div class="profile-icon">👤</div><span id="joinerStatus">Partner <span class="status-dot status-offline"></span></span></div>
@@ -200,8 +198,8 @@
       document.getElementById('invitePopup').style.display='flex';
     }
     function closeInvitePopup(){document.getElementById('invitePopup').style.display='none'}
-    function showExitconfirm(){document.getElementById('exitConfirm').style.display='flex'}
-    function closeExitconfirm(){document.getElementById('exitConfirm').style.display='none'}
+    function showExitConfirm(){document.getElementById('exitConfirm').style.display='flex'}
+    function closeExitPopup(){document.getElementById('exitConfirm').style.display='none'}
 
     // ===== ROOM =====
     function createRoom(){
