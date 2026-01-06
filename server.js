@@ -1,3 +1,4 @@
+ 
 const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
@@ -26,7 +27,7 @@ const dares = [
   "Ek cheez batao jo tumhe smile deti h",
   "Voice note me sirf 'hey daddy' bolo😁",
   "Ek secret btao jo koi ni janta tunhre alava",
-  "Apni playlist ka last song batao",
+  "ek mirror pic send kro back body ki(NAKED)",
   "Ek apna fun GIF bhejo",
   "Apna relationship status describe karo",
   "Ek random memory share karo",
@@ -35,7 +36,7 @@ const dares = [
   "Apna favourite person batao",
   "Ek dark joke sunao",
   "kabhi ghar se paise chori kre hai ?",
-  "Kisi film ka dialogue bolo",
+  "Bra strap ki snap bna kr send kro",
   "Ek song ki ek line gaake sunao",
   "Apni favourite movie batao",
   "Ek childhood story share karo",
@@ -45,7 +46,7 @@ const dares = [
   "Ek fake love story banao",
   "Apna funny face bna kr pic bhejo",
   "Ek compliment khud ko do",
-  "Ek joke sunao",
+  "pompom ko hath se hide krke photo bhejo(NAKED)",
   "mummy se bolo mujhe love marriage krni hai(video bhejo)",
   "Ek dream vacation spot batao",
   "Apna favourite game batao",
@@ -171,13 +172,22 @@ io.on("connection", socket => {
     if (rooms[data.room]) socket.to(data.room).emit("user-active-status", { active: data.active });
   });
 
+  // NEW: explicit exit event triggered only by creator clicking exit icon
+  socket.on("exit-room", room => {
+    if (!rooms[room] || rooms[room].creator !== socket.id) return;
+    io.to(room).emit('room-closed');
+    delete rooms[room];
+    console.log(`🗑️ Room ${room} deleted by creator exit`);
+  });
+
   socket.on("disconnect", () => {
     console.log("❌ User disconnected:", socket.id);
     for (const room in rooms) {
-      if (rooms[room].creator === socket.id) {
-        io.to(room).emit('room-closed'); delete rooms[room]; console.log(`🗑️ Room ${room} deleted`);
-      } else if (rooms[room].joiner === socket.id) {
-        rooms[room].joiner = null; rooms[room].joinerJoined = false; io.to(room).emit('joiner-left');
+      // only delete room if creator explicitly fired exit-room
+      if (rooms[room].joiner === socket.id) {
+        rooms[room].joiner = null;
+        rooms[room].joinerJoined = false;
+        io.to(room).emit('joiner-left');
       }
     }
   });
