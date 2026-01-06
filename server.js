@@ -77,7 +77,7 @@ function cleanupRooms() {
     if (now - room.lastActivity > ROOM_TIMEOUT_MS) {
       io.to(roomId).emit('room-closed');
       rooms.delete(roomId);
-      console.log(`🗑️ Room ${roomId} deleted due to inactivity`);
+      console.log('Room ' + roomId + ' deleted due to inactivity');
     }
   }
 }
@@ -86,7 +86,7 @@ function cleanupRooms() {
 setInterval(cleanupRooms, 60 * 60 * 1000);
 
 io.on("connection", socket => {
-  console.log("✅ User connected:", socket.id);
+  console.log("User connected:", socket.id);
 
   socket.on("check-room", room => {
     if (!isValidRoom(room)) return socket.emit('room-check-result', false);
@@ -141,7 +141,7 @@ io.on("connection", socket => {
   });
 
   socket.on("scratch", data => {
-    if (!data?.room || !isValidRoom(data.room)) return;
+    if (!data || !isValidRoom(data.room)) return;
     const roomData = rooms.get(data.room);
     if (!roomData || ![roomData.creator, roomData.joiner].includes(socket.id)) return;
     socket.to(data.room).emit("scratch", data);
@@ -170,7 +170,7 @@ io.on("connection", socket => {
   });
 
   socket.on("user-active", data => {
-    if (!data?.room || !isValidRoom(data.room)) return;
+    if (!data || !isValidRoom(data.room)) return;
     const roomData = rooms.get(data.room);
     if (!roomData || ![roomData.creator, roomData.joiner].includes(socket.id)) return;
     
@@ -185,11 +185,11 @@ io.on("connection", socket => {
     
     io.to(room).emit('room-closed');
     rooms.delete(room);
-    console.log(`🗑️ Room ${room} deleted by creator exit`);
+    console.log('Room ' + room + ' deleted by creator exit');
   });
 
   socket.on("disconnect", () => {
-    console.log("❌ User disconnected:", socket.id);
+    console.log("User disconnected:", socket.id);
     
     for (const [roomId, roomData] of rooms.entries()) {
       let roomUpdated = false;
@@ -214,7 +214,7 @@ io.on("connection", socket => {
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`💖 Server running on port ${PORT}`)));
+server.listen(PORT, () => console.log('Server running on port ' + PORT));
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
