@@ -1,4 +1,3 @@
- 
 const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
@@ -62,21 +61,6 @@ function getRandomDare() {
 io.on("connection", socket => {
   console.log("✅ User connected:", socket.id);
 
-  // Check if user is reconnecting
-  socket.on("rejoin-room", (data) => {
-    const room = data.room;
-    if (rooms[room]) {
-      socket.join(room);
-      if (rooms[room].creator === socket.id) {
-        socket.emit('role', 'creator');
-        socket.emit("state", rooms[room]);
-      } else if (rooms[room].joiner === socket.id) {
-        socket.emit('role', 'joiner');
-        socket.emit("state", rooms[room]);
-      }
-    }
-  });
-
   socket.on("check-room", room => {
     socket.emit('room-check-result', !!rooms[room]);
   });
@@ -106,17 +90,17 @@ io.on("connection", socket => {
         socket.emit('role', 'creator');
         socket.emit("state", rooms[room]);
       } 
-      // Joiner joining or rejoining
+      // Joiner joining/rejoining
       else {
         rooms[room].joiner = socket.id; 
         rooms[room].joinerJoined = true;
         socket.emit('role', 'joiner');
         
-        // FIXED: Explicitly emit to creator's socket
-        io.to(rooms[room].creator).emit("state", rooms[room]);
-        io.to(rooms[room].creator).emit('joiner-joined');
+        // CRITICAL FIX: Emit to room, not specific socket
+        io.to(room).emit("state", rooms[room]);
+        io.to(room).emit('joiner-joined');
         
-        // Send state to joiner
+        // Also send to joiner
         socket.emit("state", rooms[room]);
       }
     }
