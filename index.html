@@ -83,7 +83,7 @@
     .top-bar{display:flex;justify-content:space-between;align-items:center;padding:15px 20px;background:rgba(0,0,0,.1);backdrop-filter:blur(10px);position:fixed;top:0;left:0;right:0;z-index:100}
     .top-btn{width:45px;height:45px;border:none;border-radius:50%;background:rgba(255,255,255,.2);color:#fff;font-size:18px;cursor:pointer;backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;transition:all .3s}
     .top-btn:active{transform:scale(.9)}
-    .center-content{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:20px;padding-top:90px;padding-bottom:90px}
+    .center-content{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;padding-top:80px;padding-bottom:80px}
     .game-title{font-size:2.5em;margin-bottom:10px;text-shadow:2px 2px 4px rgba(0,0,0,.2);color:#000;text-align:center;line-height:1.2}
     .instruction{font-size:1.2em;margin-bottom:15px;color:#333;font-weight:500;text-align:center}
     .turn-indicator{margin:10px 0;font-size:1.3em;font-weight:bold;animation:pulse 1.5s infinite;color:#333;text-align:center;line-height:1.3;min-height:30px}
@@ -144,7 +144,7 @@
         <canvas id="scratchCanvas"></canvas>
         <div id="dareText">🫀Scratch to reveal!</div>
       </div>
-      <button class="complete-btn hidden" id="completeBtn">✅ Dare Completed</button>
+      <button class="complete-btn hidden" id="completeBtn" onclick="completeDare()">✅ Dare Completed</button>
     </div>
     <div class="bottom-bar">
       <div class="profile-status"><div class="profile-icon">👤</div><span id="joinerStatus">Partner <span class="status-dot status-offline"></span></span></div>
@@ -290,13 +290,7 @@
     }
 
     // ===== EXIT =====
-    function exitGame(){ 
-      if(currentRole === 'creator') {
-        socket.emit('exit-room', currentRoom);
-      }
-      if(socket)socket.disconnect(); 
-      window.location.href=window.location.pathname 
-    }
+    function exitGame(){ if(socket)socket.disconnect(); window.location.href=window.location.pathname }
     document.addEventListener('visibilitychange',()=>isPageActive=!document.hidden);
 
     // ===== AUTO-JOIN =====
