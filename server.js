@@ -35,6 +35,7 @@ function randomDare() {
 
 /* ===== ROOM STORE ===== */
 const rooms = {}; 
+const connectedUsers = new Map(); // socket.id -> { room, role }
 const ROOM_TTL = 24 * 60 * 60 * 1000; // 24 hours
 
 function cleanRooms() {
@@ -44,6 +45,19 @@ function cleanRooms() {
   }
 }
 setInterval(cleanRooms, 60 * 1000);
+
+/* ===== PARTNER STATUS HANDLER ===== */
+function emitPartnerStatus(roomName, userRole, online) {
+  const room = rooms[roomName];
+  if (!room) return;
+  
+  const partnerRole = userRole === "creator" ? "joiner" : "creator";
+  const partnerId = room[partnerRole];
+  
+  if (partnerId) {
+    io.to(partnerId).emit("partner-status", { online });
+  }
+}
 
 /* ===== SOCKET.IO EVENTS ===== */
 io.on("connection", socket => {
@@ -69,6 +83,7 @@ io.on("connection", socket => {
     };
     socket.room = name;
     socket.role = "creator";
+    connectedUsers.set(socket.id, { room: name, role: "creator" });
     socket.join(name);
     socket.emit("room-created", { role: "creator", room: name });
     console.log(`🏠 Room created: ${name} by ${socket.id}`);
@@ -84,20 +99,25 @@ io.on("connection", socket => {
       socket.emit("room-error", { type: "join", msg: "Invalid room or password" });
       return;
     }
-    if (room.joiner) {
+    if (room.joiner && room.joiner !== socket.id) {
       socket.emit("room-error", { type: "join", msg: "Room full" });
       return;
     }
+    
+    // If rejoining, update socket ID
     room.joiner = socket.id;
     socket.room = name;
     socket.role = "joiner";
+    connectedUsers.set(socket.id, { room: name, role: "joiner" });
     socket.join(name);
     socket.emit("room-joined", { role: "joiner", room: name });
     
-    // Send instant partner status update to both
+    // Send instant partner status update
     io.to(room.creator).emit("joiner-joined");
-    io.to(room.creator).emit("partner-status", { online: true });
-    io.to(room.joiner).emit("partner-status", { online: true });
+    emitPartnerStatus(name, "joiner", true);
+    
+    // Send current turn to joiner
+    socket.emit("next-turn", room.turn);
     
     console.log(`👥 User joined room: ${name}`);
   });
@@ -135,17 +155,12 @@ io.on("connection", socket => {
   socket.on("disconnect", reason => {
     console.log("🔌 User disconnected:", socket.id, "Reason:", reason);
     
-    // Don't remove from room immediately - keep in memory for reconnection
-    // Only update partner status
-    if (socket.room && socket.role) {
-      const room = rooms[socket.room];
-      if (room) {
-        const partnerRole = socket.role === "creator" ? "joiner" : "creator";
-        const partnerId = room[partnerRole];
-        if (partnerId) {
-          io.to(partnerId).emit("partner-status", { online: false });
-        }
-      }
+    // Remove from connected users but keep room alive
+    const userData = connectedUsers.get(socket.id);
+    if (userData) {
+      const { room: roomName, role: userRole } = userData;
+      emitPartnerStatus(roomName, userRole, false);
+      connectedUsers.delete(socket.id);
     }
   });
 });
