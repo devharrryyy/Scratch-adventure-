@@ -1,9 +1,10 @@
-<!DOCTYPE html>
+  
+ <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Scratch Adventure 🫀🫂</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Scratch Adventure </title>
   <style>
     *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
     html,body{height:100%;overflow:hidden}
@@ -17,7 +18,7 @@
     .particles{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0}
     .particle{
       position:absolute;border-radius:50%;
-      animation:float 8s infinite ease-in-out;
+      animation:float 6s infinite ease-in-out;
       opacity:0;
     }
     .particle.heart{width:14px;height:14px;background:#ff6b6b}
@@ -26,23 +27,10 @@
     .particle.dot3{width:8px;height:8px;background:#2196F3}
     .particle.dot4{width:11px;height:11px;background:#9C27B0}
     @keyframes float{
-      0%, 100%{transform:translateY(0) translateX(0) scale(1);opacity:.8}
-      25%{transform:translateY(-15px) translateX(calc(var(--drift) * 0.3)) scale(0.9);opacity:.9}
-      50%{transform:translateY(-5px) translateX(calc(var(--drift) * -0.2)) scale(0.85);opacity:.8}
-      75%{transform:translateY(-20px) translateX(calc(var(--drift) * 0.5)) scale(0.95);opacity:.9}
-    }
-
-    /* ===== TEDDY IMAGES ===== */
-    .teddy-welcome{
-      width:220px;
-      height:220px;
-      margin-bottom:20px;
-      animation:glow 2s ease-in-out infinite alternate, titlePulse 2.5s ease-in-out infinite;
-    }
-    .teddy-game{
-      width:180px;
-      height:180px;
-      margin-bottom:15px;
+      0%{transform:translateY(100vh) translateX(0) scale(1);opacity:0}
+      10%{opacity:.8}
+      90%{opacity:.8}
+      100%{transform:translateY(-20px) translateX(var(--drift)) scale(.6);opacity:0}
     }
 
     /* ===== POPUPS ===== */
@@ -55,7 +43,7 @@
     .popup button:last-of-type{background:#ff6b6b;color:#fff}
 
     /* ===== WELCOME SCREEN + ANIMATIONS ===== */
-    .welcome-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;position:relative;z-index:1;padding-top:env(safe-area-inset-top, 0px);padding-bottom:env(safe-area-inset-bottom, 0px)}
+    .welcome-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;position:relative;z-index:1}
     /* title */
     .main-title{
       font-size:4em;margin-bottom:30px;
@@ -80,10 +68,10 @@
 
     /* ===== GAME SCREEN ===== */
     .game-screen{display:none;flex-direction:column;height:100vh;position:relative;z-index:1}
-    .top-bar{display:flex;justify-content:space-between;align-items:center;padding:15px 20px;background:rgba(0,0,0,.1);backdrop-filter:blur(10px);position:fixed;top:0;left:0;right:0;z-index:100;padding-top:calc(15px + env(safe-area-inset-top, 0px))}
+    .top-bar{display:flex;justify-content:space-between;align-items:center;padding:15px 20px;background:rgba(0,0,0,.1);backdrop-filter:blur(10px);position:fixed;top:0;left:0;right:0;z-index:100}
     .top-btn{width:45px;height:45px;border:none;border-radius:50%;background:rgba(255,255,255,.2);color:#fff;font-size:18px;cursor:pointer;backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;transition:all .3s}
     .top-btn:active{transform:scale(.9)}
-    .center-content{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;padding-top:calc(90px + env(safe-area-inset-top, 0px));padding-bottom:calc(90px + env(safe-area-inset-bottom, 0px))}
+    .center-content{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;padding-top:80px;padding-bottom:80px}
     .game-title{font-size:2.5em;margin-bottom:10px;text-shadow:2px 2px 4px rgba(0,0,0,.2);color:#000;text-align:center;line-height:1.2}
     .instruction{font-size:1.2em;margin-bottom:15px;color:#333;font-weight:500;text-align:center}
     .turn-indicator{margin:10px 0;font-size:1.3em;font-weight:bold;animation:pulse 1.5s infinite;color:#333;text-align:center;line-height:1.3;min-height:30px}
@@ -95,7 +83,7 @@
     .complete-btn{padding:15px 40px;font-size:1.1em;background:linear-gradient(45deg,#4CAF50,#66BB6A);border:none;border-radius:30px;color:#fff;cursor:pointer;font-weight:bold;margin:20px 0;transition:all .3s;text-align:center}
     .complete-btn:hover{transform:scale(1.05);box-shadow:0 8px 25px rgba(76,175,80,.4)}
     .complete-btn:disabled{background:#ccc!important;cursor:not-allowed!important;transform:scale(1)!important;opacity:.6}
-    .bottom-bar{display:flex;justify-content:space-between;align-items:center;padding:15px 20px;background:rgba(0,0,0,.1);backdrop-filter:blur(10px);position:fixed;bottom:0;left:0;right:0;z-index:100;padding-bottom:calc(15px + env(safe-area-inset-bottom, 0px))}
+    .bottom-bar{display:flex;justify-content:space-between;align-items:center;padding:15px 20px;background:rgba(0,0,0,.1);backdrop-filter:blur(10px);position:fixed;bottom:0;left:0;right:0;z-index:100}
     .profile-status{display:flex;align-items:center;gap:10px;font-size:14px;color:#333;font-weight:500}
     .profile-icon{width:35px;height:35px;border-radius:50%;background:#ff6b6b;display:flex;align-items:center;justify-content:center;font-size:18px;color:#fff}
     .creator-info{color:#333;font-size:.9em;text-align:center}
@@ -110,13 +98,6 @@
       .instruction{font-size:1em}
       .turn-indicator{font-size:1.1em}
     }
-    
-    /* Safe area adjustments for landscape */
-    @media (orientation: landscape) and (max-width: 900px) {
-      .top-bar{padding-left:calc(20px + env(safe-area-inset-left, 0px));padding-right:calc(20px + env(safe-area-inset-right, 0px))}
-      .bottom-bar{padding-left:calc(20px + env(safe-area-inset-left, 0px));padding-right:calc(20px + env(safe-area-inset-right, 0px))}
-      .center-content{padding-left:calc(20px + env(safe-area-inset-left, 0px));padding-right:calc(20px + env(safe-area-inset-right, 0px))}
-    }
   </style>
 </head>
 <body>
@@ -124,37 +105,35 @@
   <div class="particles" id="particles"></div>
 
   <!-- ===== POPUPS ===== -->
-  <div class="popup-overlay" id="exitConfirm"><div class="popup"><h3>❌ Exit Game?</h3><p>Are you sure you want to leave?</p><button onclick="exitGame()">Confirm</button><button onclick="closeExitPopup()">Cancel</button></div></div>
-  <div class="popup-overlay" id="roomPopup"><div class="popup"><h3>🎮 Create Room</h3><input type="text" id="roomNameInput" placeholder="Enter your name..." maxlength="20"><button onclick="createRoom()">Create Room</button><button onclick="closeRoomPopup()">Cancel</button></div></div>
-  <div class="popup-overlay" id="invitePopup"><div class="popup"><h3>🔗 Invite Friend</h3><input type="text" id="inviteLink" readonly><button onclick="copyLink()">Copy Link</button><button onclick="closeInvitePopup()">Close</button></div></div>
+  <div class="popup-overlay" id="exitConfirm"><div class="popup"><h3> Exit Game?</h3><p>Are you sure you want to leave?</p><button onclick="exitGame()">Confirm</button><button onclick="closeExitPopup()">Cancel</button></div></div>
+  <div class="popup-overlay" id="roomPopup"><div class="popup"><h3> Create Room</h3><input type="text" id="roomNameInput" placeholder="Enter your name..." maxlength="20"><button onclick="createRoom()">Create Room</button><button onclick="closeRoomPopup()">Cancel</button></div></div>
+  <div class="popup-overlay" id="invitePopup"><div class="popup"><h3> Invite Friend</h3><input type="text" id="inviteLink" readonly><button onclick="copyLink()">Copy Link</button><button onclick="closeInvitePopup()">Close</button></div></div>
 
   <!-- ===== WELCOME SCREEN ===== -->
   <div class="welcome-screen" id="welcomeScreen">
-    <img src="teddy.png" class="teddy-welcome" alt="Teddy">
-    <h1 class="main-title">💕 Scratch Adventure 💕</h1>
+    <h1 class="main-title"> Scratch Adventure </h1>
     <button class="create-btn" onclick="showRoomPopup()">Create Room</button>
   </div>
 
   <!-- ===== GAME SCREEN ===== -->
   <div class="game-screen" id="gameScreen">
     <div class="top-bar">
-      <button class="top-btn exit-btn" onclick="showExitConfirm()">❌</button>
-      <button class="top-btn invite-btn" id="inviteBtn" onclick="showInvitePopup()">🔗</button>
+      <button class="top-btn exit-btn" onclick="showExitConfirm()"></button>
+      <button class="top-btn invite-btn" id="inviteBtn" onclick="showInvitePopup()"></button>
     </div>
     <div class="center-content">
-      <img src="teddy.png" class="teddy-game" alt="Teddy">
-      <h2 class="game-title">🎀Scratch Adventure🎀</h2>
-      <p class="instruction">Scratch the red ♥️ field with your finger</p>
+      <h2 class="game-title">Scratch Adventure</h2>
+      <p class="instruction">Scratch the red  field with your finger</p>
       <div class="turn-indicator" id="turnIndicator">Waiting for partner to join...</div>
       <div class="name-plate" id="creatorName">Room</div>
       <div class="dare-box" id="dareBox">
         <canvas id="scratchCanvas"></canvas>
-        <div id="dareText">🫀Scratch to reveal!</div>
+        <div id="dareText">Scratch to reveal!</div>
       </div>
-      <button class="complete-btn hidden" id="completeBtn" onclick="completeDare()">✅ Dare Completed</button>
+      <button class="complete-btn hidden" id="completeBtn" onclick="completeDare()"> Dare Completed</button>
     </div>
     <div class="bottom-bar">
-      <div class="profile-status"><div class="profile-icon">👤</div><span id="joinerStatus">Partner <span class="status-dot status-offline"></span></span></div>
+      <div class="profile-status"><div class="profile-icon"></div><span id="joinerStatus">Partner <span class="status-dot status-offline"></span></span></div>
       <div class="creator-info">Created by urluv_harrryyy</div>
     </div>
   </div>
@@ -182,10 +161,9 @@
         const type = colors[Math.floor(Math.random()*colors.length)];
         p.className = 'particle '+type;
         p.style.left = Math.random()*100 + '%';
-        p.style.top = Math.random()*100 + '%';
         p.style.setProperty('--drift', (Math.random()*60 - 30) + 'px');
-        p.style.animationDelay = Math.random()*8 + 's';
-        p.style.animationDuration = (8 + Math.random()*4) + 's';
+        p.style.animationDelay = Math.random()*6 + 's';
+        p.style.animationDuration = (6 + Math.random()*4) + 's';
         container.appendChild(p);
       }
     }
@@ -200,8 +178,8 @@
       document.getElementById('invitePopup').style.display='flex';
     }
     function closeInvitePopup(){document.getElementById('invitePopup').style.display='none'}
-    function showExitconfirm(){document.getElementById('exitConfirm').style.display='flex'}
-    function closeExitconfirm(){document.getElementById('exitConfirm').style.display='none'}
+    function showExitConfirm(){document.getElementById('exitConfirm').style.display='flex'}
+    function closeExitPopup(){document.getElementById('exitConfirm').style.display='none'}
 
     // ===== ROOM =====
     function createRoom(){
@@ -222,7 +200,7 @@
     async function copyLink(){
       const link = document.getElementById('inviteLink');
       try{ await navigator.clipboard.writeText(link.value) }catch{ link.select(); document.execCommand('copy') }
-      alert('📋 Link copied!'); closeInvitePopup();
+      alert(' Link copied!'); closeInvitePopup();
     }
 
     // ===== CANVAS =====
@@ -243,23 +221,23 @@
 
     // ===== SOCKET =====
     socket.on('role',role=>{ currentRole=role; isMyTurn=(role==='creator'); if(role==='joiner')document.getElementById('inviteBtn').style.display='none'; updateUI(); });
-    socket.on('state',state=>{ joinerJoined=state.joinerJoined; hasScratched=state.scratched; document.getElementById('dareText').textContent = state.scratched?state.dare:'♥️ Scratch to reveal!'; if(!state.scratched){setupCanvas();document.getElementById('completeBtn').classList.add('hidden')}else{document.getElementById('completeBtn').classList.remove('hidden')} updateUI(); });
+    socket.on('state',state=>{ joinerJoined=state.joinerJoined; hasScratched=state.scratched; document.getElementById('dareText').textContent = state.scratched?state.dare:' Scratch to reveal!'; if(!state.scratched){setupCanvas();document.getElementById('completeBtn').classList.add('hidden')}else{document.getElementById('completeBtn').classList.remove('hidden')} updateUI(); });
     socket.on('joiner-joined',()=>{joinerJoined=true;updateUI()});
     socket.on('joiner-left',()=>{joinerJoined=false;updateUI()});
     socket.on('user-active-status',data=>{ const dot=document.querySelector('#joinerStatus .status-dot'); dot.className=data.active?'status-dot status-online':'status-dot status-offline' });
-    socket.on('new-turn',data=>{ hasScratched=false; document.getElementById('dareText').textContent='♥️ Scratch to reveal!'; document.getElementById('completeBtn').classList.add('hidden'); setupCanvas(); isMyTurn=(currentRole===data.turn); updateUI(); });
+    socket.on('new-turn',data=>{ hasScratched=false; document.getElementById('dareText').textContent=' Scratch to reveal!'; document.getElementById('completeBtn').classList.add('hidden'); setupCanvas(); isMyTurn=(currentRole===data.turn); updateUI(); });
     socket.on('reveal',dare=>{ document.getElementById('dareText').textContent=dare; document.getElementById('completeBtn').classList.remove('hidden'); hasScratched=true; updateUI(); });
-    socket.on('room-closed',()=>{ alert('🚫 Room closed by creator. Redirecting...'); window.location.href=window.location.pathname });
-    socket.on('error',msg=>{ alert(`❌ ${msg}`); if(msg.includes('closed'))window.location.href=window.location.pathname });
+    socket.on('room-closed',()=>{ alert(' Room closed by creator. Redirecting...'); window.location.href=window.location.pathname });
+    socket.on('error',msg=>{ alert(` ${msg}`); if(msg.includes('closed'))window.location.href=window.location.pathname });
 
     // ===== UI =====
     function updateUI(){
       const ind=document.getElementById('turnIndicator'),dot=document.querySelector('#joinerStatus .status-dot'),btn=document.getElementById('completeBtn');
       dot.className=joinerJoined?'status-dot status-online':'status-dot status-offline';
-      if(!joinerJoined)ind.textContent='⏳ Waiting for partner to join...';
-      else if(isMyTurn&&!hasScratched)ind.textContent='✨ Your turn! Scratch to reveal';
-      else if(!isMyTurn&&!hasScratched)ind.textContent='⏳ Waiting for partner to scratch...';
-      else if(hasScratched)ind.textContent='💖 Dare revealed! Tap "Dare Completed"';
+      if(!joinerJoined)ind.textContent=' Waiting for partner to join...';
+      else if(isMyTurn&&!hasScratched)ind.textContent=' Your turn! Scratch to reveal';
+      else if(!isMyTurn&&!hasScratched)ind.textContent=' Waiting for partner to scratch...';
+      else if(hasScratched)ind.textContent=' Dare revealed! Tap "Dare Completed"';
       if(hasScratched&&joinerJoined)btn.classList.remove('hidden'); else btn.classList.add('hidden');
     }
     function completeDare(){ if(!hasScratched||!joinerJoined)return; socket.emit('done',currentRoom); document.getElementById('completeBtn').classList.add('hidden'); hasScratched=false; setupCanvas(); updateUI(); }
@@ -297,13 +275,7 @@
     }
 
     // ===== EXIT =====
-    function exitGame(){ 
-      if(currentRole === 'creator') {
-        socket.emit('exit-room', currentRoom);
-      }
-      if(socket)socket.disconnect(); 
-      window.location.href=window.location.pathname 
-    }
+    function exitGame(){ if(socket)socket.disconnect(); window.location.href=window.location.pathname }
     document.addEventListener('visibilitychange',()=>isPageActive=!document.hidden);
 
     // ===== AUTO-JOIN =====
@@ -312,7 +284,7 @@
       socket.emit('check-room',roomParam);
       socket.on('room-check-result',exists=>{
         if(exists){ currentRoom=roomParam; creatorName=roomParam; currentRole='joiner'; document.getElementById('creatorName').textContent=creatorName; document.getElementById('inviteBtn').style.display='none'; setTimeout(()=>joinGame(),100) }
-        else{ alert('🚫 This invite link is no longer valid! Room closed by creator.'); window.location.href=window.location.pathname }
+        else{ alert(' This invite link is no longer valid! Room closed by creator.'); window.location.href=window.location.pathname }
       });
     }
   </script>
