@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1.0" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Scratch Adventure</title>
 
 <script src="/socket.io/socket.io.js"></script>
@@ -11,12 +11,11 @@
 *{box-sizing:border-box;font-family:Poppins,sans-serif}
 body{
   margin:0;
-  background:linear-gradient(135deg,#ff9a9e,#fad0c4);
   min-height:100vh;
+  background:linear-gradient(135deg,#ff9a9e,#fad0c4);
   display:flex;
   justify-content:center;
   align-items:center;
-  color:#333;
 }
 .hidden{display:none}
 
@@ -25,10 +24,9 @@ body{
   width:95%;
   max-width:420px;
   background:#fff;
-  border-radius:20px;
+  border-radius:22px;
   padding:20px;
-  box-shadow:0 20px 40px rgba(0,0,0,.2);
-  position:relative;
+  box-shadow:0 20px 40px rgba(0,0,0,.25);
 }
 
 /* TOP BAR */
@@ -47,16 +45,13 @@ body{
   display:flex;
   align-items:center;
   gap:6px;
+  font-size:14px;
 }
 .dot{
-  width:10px;
-  height:10px;
-  border-radius:50%;
-  background:gray;
+  width:10px;height:10px;border-radius:50%;background:gray;
 }
-.dot.active{background:#4caf50}
 
-/* BODY */
+/* CENTER */
 .center{text-align:center}
 .center img{
   width:120px;
@@ -66,44 +61,44 @@ body{
   0%,100%{transform:translateY(0)}
   50%{transform:translateY(-10px)}
 }
-h2{margin:10px 0 0}
-.sub{font-size:13px;color:#777}
 
-/* DARE BOX */
-.nameplate{
-  margin-top:10px;
-  font-weight:bold;
-}
+/* DARE */
+.nameplate{margin-top:10px;font-weight:bold}
+.dare-wrapper{position:relative;margin-top:10px}
 .dare-box{
-  margin-top:10px;
-  padding:15px;
-  border-radius:15px;
-  background:#f7f7f7;
-  min-height:70px;
-  word-wrap:break-word;
+  padding:16px;
+  border-radius:16px;
+  background:#f5f5f5;
+  min-height:80px;
+}
+canvas{
+  position:absolute;
+  inset:0;
+  border-radius:16px;
 }
 button.main{
-  margin-top:10px;
+  margin-top:12px;
   width:100%;
-  padding:12px;
+  padding:13px;
   border:none;
-  border-radius:12px;
+  border-radius:14px;
   background:#ff6f91;
   color:#fff;
   font-size:16px;
-  cursor:pointer;
 }
 
-/* POPUPS */
+/* POPUPS — FIXED */
 .popup-bg{
   position:fixed;
   inset:0;
   background:rgba(0,0,0,.5);
-  display:flex;
+  display:none;          /* 👈 IMPORTANT FIX */
   justify-content:center;
   align-items:center;
-  z-index:99;
+  z-index:999;
 }
+.popup-bg.show{display:flex}
+
 .popup{
   background:#fff;
   padding:20px;
@@ -112,175 +107,162 @@ button.main{
   max-width:350px;
   text-align:center;
 }
-.popup input{
-  width:100%;
-  padding:10px;
-  margin:10px 0;
-}
-.popup button{
-  width:100%;
-  padding:10px;
-  margin-top:8px;
-  border:none;
-  border-radius:10px;
-  cursor:pointer;
-}
+
 .share-icons{
   display:flex;
   justify-content:center;
   gap:15px;
   margin-top:10px;
 }
-.share-icons button{
-  width:45px;
-  height:45px;
-  border-radius:50%;
-  font-size:20px;
-}
 
-/* FOOT */
 .footer{
   margin-top:10px;
   font-size:12px;
   color:#aaa;
+}
+
+input{
+  width:100%;
+  padding:12px;
+  margin-top:10px;
+  border-radius:12px;
+  border:1px solid #ccc;
 }
 </style>
 </head>
 
 <body>
 
+<!-- WELCOME -->
 <div class="card" id="welcome">
   <h2>Scratch Adventure 💕</h2>
   <button class="main" onclick="showCreate()">Create Room</button>
   <button class="main" onclick="showJoin()">Join Room</button>
 </div>
 
+<!-- CREATE -->
 <div class="card hidden" id="create">
-  <h3>Create Room</h3>
-  <input id="cname" placeholder="Room name" />
-  <input id="cpass" placeholder="Password" />
+  <input id="cname" placeholder="Room name">
+  <input id="cpass" placeholder="Password">
   <button class="main" onclick="createRoom()">Create</button>
 </div>
 
+<!-- JOIN -->
 <div class="card hidden" id="join">
-  <h3>Join Room</h3>
-  <input id="jname" placeholder="Room name" />
-  <input id="jpass" placeholder="Password" />
+  <input id="jname" placeholder="Room name">
+  <input id="jpass" placeholder="Password">
   <button class="main" onclick="joinRoom()">Join</button>
 </div>
 
+<!-- GAME -->
 <div class="card hidden" id="game">
   <div class="top">
-    <button id="exitBtn" onclick="openExit()">❌</button>
-    <div class="center-status">
-      <span>Partner</span>
-      <div class="dot" id="statusDot"></div>
-    </div>
+    <button onclick="openExit()">❌</button>
+    <div class="center-status">Partner <div class="dot"></div></div>
     <button id="inviteBtn" onclick="openInvite()">🔗</button>
   </div>
 
   <div class="center">
-    <img src="teddy.png" />
+    <img src="teddy.png">
     <h2>Scratch Adventure</h2>
-    <div class="sub">scratch the field with your finger</div>
-
-    <div id="info" class="sub"></div>
-
     <div class="nameplate" id="nameplate"></div>
-    <div class="dare-box" id="dareBox">Scratch to reveal dare</div>
+
+    <div class="dare-wrapper">
+      <div class="dare-box" id="dareBox">Scratch to reveal</div>
+      <canvas id="scratch"></canvas>
+    </div>
 
     <button class="main hidden" id="doneBtn" onclick="done()">Dare Completed</button>
-
     <div class="footer">created by devherrryyy</div>
   </div>
 </div>
 
-<!-- INVITE POPUP -->
-<div class="popup-bg hidden" id="inviteModal">
+<!-- INVITE MODAL -->
+<div class="popup-bg" id="inviteModal">
   <div class="popup">
-    <h3>Invite Partner 💕</h3>
     <input id="roomLink" readonly>
-    <button onclick="copyLink()">Copy</button>
-
+    <button class="main" onclick="copyLink()">Copy</button>
     <div class="share-icons">
       <button onclick="share('whatsapp')">🟢</button>
       <button onclick="share('instagram')">🟣</button>
       <button onclick="share('snapchat')">🟡</button>
     </div>
-
-    <button style="background:#aaa" onclick="closeInvite()">Cancel</button>
+    <button class="main" style="background:#aaa" onclick="closeInvite()">Cancel</button>
   </div>
 </div>
 
-<!-- EXIT POPUP -->
-<div class="popup-bg hidden" id="exitModal">
+<!-- EXIT MODAL -->
+<div class="popup-bg" id="exitModal">
   <div class="popup">
-    <h3>Exit Room?</h3>
-    <p>Do you really want to exit?</p>
-    <button onclick="confirmExit()">Confirm</button>
-    <button style="background:#aaa" onclick="closeExit()">Cancel</button>
+    <button class="main" onclick="confirmExit()">Confirm Exit</button>
+    <button class="main" style="background:#aaa" onclick="closeExit()">Cancel</button>
   </div>
 </div>
 
 <script>
 const socket=io();
-let room="",role="";
+let room="",role="",canvas,ctx,isDraw=false;
 
+/* NAV */
 function showCreate(){welcome.classList.add("hidden");create.classList.remove("hidden")}
 function showJoin(){welcome.classList.add("hidden");join.classList.remove("hidden")}
 
-function createRoom(){
-  socket.emit("create-room",{name:cname.value,password:cpass.value});
-}
-function joinRoom(){
-  socket.emit("join-room",{name:jname.value,password:jpass.value});
-}
+function createRoom(){socket.emit("create-room",{name:cname.value,password:cpass.value})}
+function joinRoom(){socket.emit("join-room",{name:jname.value,password:jpass.value})}
 
-socket.on("room-created",d=>{
-  role="creator";room=d.room;startGame();
-});
-socket.on("room-joined",d=>{
-  role="joiner";room=d.room;startGame();
-});
+socket.on("room-created",d=>{role="creator";room=d.room;start()});
+socket.on("room-joined",d=>{role="joiner";room=d.room;start()});
 
-function startGame(){
+function start(){
   create.classList.add("hidden");
   join.classList.add("hidden");
   game.classList.remove("hidden");
+  nameplate.innerText=role;
   if(role!=="creator")inviteBtn.style.display="none";
-  nameplate.innerText=role==="creator"?"Creator":"Joiner";
+  initScratch();
 }
 
+/* SCRATCH */
+function initScratch(){
+  canvas=scratch;
+  ctx=canvas.getContext("2d");
+  canvas.width=canvas.offsetWidth;
+  canvas.height=canvas.offsetHeight;
+  ctx.fillStyle="#ccc";
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.globalCompositeOperation="destination-out";
+
+  canvas.onpointerdown=e=>{isDraw=true;draw(e)};
+  canvas.onpointermove=e=>isDraw&&draw(e);
+  canvas.onpointerup=()=>isDraw=false;
+}
+function draw(e){
+  const r=25,rect=canvas.getBoundingClientRect();
+  ctx.beginPath();
+  ctx.arc(e.clientX-rect.left,e.clientY-rect.top,r,0,Math.PI*2);
+  ctx.fill();
+}
+
+/* MODALS */
 function openInvite(){
   roomLink.value=location.origin+"?room="+room;
-  inviteModal.classList.remove("hidden");
+  inviteModal.classList.add("show");
 }
-function closeInvite(){inviteModal.classList.add("hidden")}
-function copyLink(){
-  navigator.clipboard.writeText(roomLink.value);
-  alert("Link copied");
-}
-function share(app){
-  const text="Join my Scratch Adventure 💕 "+roomLink.value;
-  if(app==="whatsapp")
-    window.open("https://wa.me/?text="+encodeURIComponent(text));
-  if(app==="instagram")
-    window.open("https://www.instagram.com/");
-  if(app==="snapchat")
-    window.open("https://www.snapchat.com/");
-}
-
-function openExit(){exitModal.classList.remove("hidden")}
-function closeExit(){exitModal.classList.add("hidden")}
+function closeInvite(){inviteModal.classList.remove("show")}
+function openExit(){exitModal.classList.add("show")}
+function closeExit(){exitModal.classList.remove("show")}
 function confirmExit(){
   if(role==="creator")socket.emit("exit-room",room);
   location.reload();
 }
-
+function copyLink(){navigator.clipboard.writeText(roomLink.value);alert("Copied")}
+function share(app){
+  const t="Join my Scratch Adventure 💕 "+roomLink.value;
+  if(app==="whatsapp")window.open("https://wa.me/?text="+encodeURIComponent(t));
+}
 function done(){
   doneBtn.classList.add("hidden");
-  dareBox.innerText="Scratch to reveal dare";
-  socket.emit("done",room);
+  initScratch();
 }
 </script>
 
