@@ -403,6 +403,7 @@ let socket;
 let room="",role="",myTurn=false,scratched=false;
 let reconnectAttempts=0;
 let partnerOnline=false;
+let creatorToken=null; // Token for creator auto-login
 
 function connectSocket(){
   socket = io({
@@ -415,8 +416,15 @@ function connectSocket(){
   socket.on("connect", () => {
     console.log("✅ Connected to server");
     reconnectAttempts=0;
-    if(room && role){
-      socket.emit("rejoin-room", { room, role });
+    
+    // Try to rejoin from localStorage
+    const savedSession = localStorage.getItem('scratchAdventureSession');
+    if(savedSession){
+      const { room: savedRoom, role: savedRole, token } = JSON.parse(savedSession);
+      if(savedRoom && savedRole){
+        console.log("🔄 Attempting to rejoin room:", savedRoom);
+        socket.emit("rejoin-room", { room: savedRoom, role: savedRole, token });
+      }
     }
   });
 
@@ -437,20 +445,39 @@ function connectSocket(){
 
   /* ===== ROOM EVENTS ===== */
   socket.on("room-created", d => {
-    role=d.role; room=d.room;
+    role=d.role; room=d.room; creatorToken=d.creatorToken||null;
+    // Save session
+    localStorage.setItem('scratchAdventureSession', JSON.stringify({ room, role, token: creatorToken }));
     startGame();
   });
 
   socket.on("room-joined", d => {
     role=d.role; room=d.room;
+    // Save session
+    localStorage.setItem('scratchAdventureSession', JSON.stringify({ room, role }));
     startGame();
   });
 
+  socket.on("room-rejoined", d => {
+    role=d.role; room=d.room; myTurn=d.myTurn;
+    partnerOnline=d.partnerOnline;
+    updateDotStatus(partnerOnline);
+    startGame();
+    console.log("✅ Successfully rejoined room");
+  });
+
   socket.on("room-error", data => {
+    if(data.type==='create' || data.type==='join'){
+      // Clear invalid session
+      localStorage.removeItem('scratchAdventureSession');
+    }
     if(data.type==='create'){
       showError('create',data.msg);
     } else if(data.type==='join'){
       showError('join',data.msg);
+    } else if(data.type==='rejoin'){
+      console.log("Rejoin failed:", data.msg);
+      localStorage.removeItem('scratchAdventureSession');
     }
   });
 
@@ -470,6 +497,7 @@ function connectSocket(){
 
   socket.on("room-closed", () => {
     alert("Room closed by creator!");
+    localStorage.removeItem('scratchAdventureSession');
     location.reload();
   });
 
@@ -619,6 +647,8 @@ function closeConfirm(){
 }
 function confirmExit(){
   if(role==="creator") socket.emit("exit-room",room);
+  // Clear session on explicit exit
+  localStorage.removeItem('scratchAdventureSession');
   socket.disconnect();
   location.reload();
 }
@@ -636,11 +666,11 @@ function startGame(){
   if(role==="creator"){
     myTurn=true;
     infoText.textContent="Your turn";
-    updateDotStatus(false); // Initially offline until joiner joins
+    if(!partnerOnline) updateDotStatus(false);
   } else {
     myTurn=false;
     infoText.textContent="Partner's turn";
-    updateDotStatus(true); // Joiner sees creator as online
+    updateDotStatus(true);
   }
 }
 
@@ -729,7 +759,7 @@ document.querySelectorAll('.popup-bg').forEach(bg=>{
 window.addEventListener('load',()=>{
   connectSocket();
   
-  // Auto-fill room from URL
+  // Auto-fill room from URL for joiners
   const params=new URLSearchParams(window.location.search);
   const roomParam=params.get('room');
   if(roomParam){
