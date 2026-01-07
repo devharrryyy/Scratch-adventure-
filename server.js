@@ -22,7 +22,7 @@ app.get("/", (_, res) => res.sendFile(path.join(__dirname, "index.html")));
 const dares = [
   "Apni ek cute selfie bhejo", "Sirf emojis me apna mood batao", "Ek honest compliment do mujhe",
   "Apna favourite song share karo", "5 minute tak fast reply karo", "Ek flirty line likho",
-  "Apna nickname batao", "Ek cheez batao jo tumhe smile deti h", "Voice note me sirf 'hey daddy' bolo😁",
+  "Apna nickname batao", "Ek cheez batao jo tumhe smile deti h", "Voice note me sirf 'hey daddy' bolo",
   "Ek secret btao jo koi ni janta tumhre alava", "Apni bra strap ki snap bhejo",
   "Ek apna fun GIF bhejo", "Apna relationship status describe karo", "Ek random memory share karo",
   "Ek imaginary date idea batao", "Kisi ko tag karke unki taarif karo (story me)",
@@ -57,7 +57,7 @@ const dares = [
   "Apna favourite midnight snack batao", "Ek virtual kiss bhejo", "Apna weight btao",
   "Apna favourite childhood memories batao", "Ek devil laugh audio bhejo",
   "Apni real age batao", "Ek favourite planet name batao jaha jana chahte ho", "Apna favourite sound of nature batao",
-  "Ek 15 second actor ki mimicry karo (video me)", "Apna naked hips ki snap bhejo", "jab tum sad/upset hote ho to kya krna psnd krte ho"
+  "Ek 15 second actor ki mimicry karo (video me)", "Apna naked hips ki snap bhejo", "jab tum sad/upset hote ho to kya krna psnd krte ho",
 ];
 
 function randomDare() {
