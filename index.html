@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Scratch Adventure 💕</title>
 
 <style>
@@ -12,7 +14,9 @@ body{
   font-family:Segoe UI,Tahoma,Verdana,sans-serif;
   background:linear-gradient(135deg,#ff9a9e,#fad0c4);
   color:#333;
-  position:fixed;width:100%;height:100%
+  position:fixed;width:100%;height:100%;
+  -webkit-font-smoothing:antialiased;
+  -webkit-overflow-scrolling:touch
 }
 
 /* ===== ANIMATED BACKGROUND ===== */
@@ -31,7 +35,7 @@ body{
 
 /* ===== COMMON ===== */
 .hidden{display:none!important}
-button{cursor:pointer;border:none}
+button{cursor:pointer;border:none;outline:none;touch-action:manipulation}
 
 /* ===== WELCOME ===== */
 #welcome{
@@ -47,16 +51,17 @@ button{cursor:pointer;border:none}
 #welcome h1{
   font-size:3em;
   background:linear-gradient(45deg,#ff416c,#ff4b2b);
-  -webkit-background-clip:text;
-  -webkit-text-fill-color:transparent
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent
 }
 .main-btn{
   padding:15px 45px;
   border-radius:40px;
   background:#ff416c;
   color:#fff;font-size:1.1em;font-weight:bold;
-  box-shadow:0 10px 30px rgba(0,0,0,.25)
+  box-shadow:0 10px 30px rgba(0,0,0,.25);
+  transition:transform .2s
 }
+.main-btn:active{transform:scale(.95)}
 
 /* ===== POPUP ===== */
 .popup-bg{
@@ -74,21 +79,30 @@ button{cursor:pointer;border:none}
   text-align:center;
   position:relative;
   max-height:90vh;
-  overflow-y:auto
+  overflow-y:auto;
+  animation:slideUp .3s ease-out
 }
+@keyframes slideUp{from{transform:translateY(50px);opacity:0}}
 .popup input{
   width:100%;padding:12px;margin:10px 0;
-  border-radius:25px;border:2px solid #ff416c
+  border-radius:25px;border:2px solid #ff416c;
+  font-size:1em
 }
 .popup button{
   margin-top:10px;
   padding:12px 30px;
   border-radius:25px;
-  background:#ff416c;color:#fff;font-weight:bold
+  background:#ff416c;color:#fff;font-weight:bold;
+  transition:transform .2s
 }
+.popup button:active{transform:scale(.95)}
 .error-msg{
   color:#ff416c;font-size:.9em;margin-top:5px;
-  display:none
+  display:none;font-weight:bold
+}
+.success-msg{
+  color:#4CAF50;font-size:.9em;margin-top:5px;
+  display:none;font-weight:bold
 }
 
 /* ===== SHARE MODAL ===== */
@@ -105,16 +119,19 @@ button{cursor:pointer;border:none}
   border-radius:10px;
   margin:15px 0;
   word-break:break-all;
+  font-size:.9em;
   position:relative
 }
 .copy-btn, .cancel-btn{
   margin:5px;
   padding:10px 25px;
   border-radius:20px;
-  font-size:.95em
+  font-size:.95em;
+  transition:transform .2s
 }
 .copy-btn{background:#4CAF50}
 .cancel-btn{background:#999}
+.copy-btn:active, .cancel-btn:active{transform:scale(.95)}
 .share-apps{
   display:flex;
   justify-content:space-around;
@@ -127,13 +144,14 @@ button{cursor:pointer;border:none}
   align-items:center;cursor:pointer;
   transition:transform .2s
 }
-.app-icon:active{transform:scale(.95)}
+.app-icon:active{transform:scale(.85)}
 .app-icon img{
   width:50px;height:50px;
   border-radius:12px;
-  margin-bottom:5px
+  margin-bottom:5px;
+  pointer-events:none
 }
-.app-icon span{font-size:.85em}
+.app-icon span{font-size:.85em;font-weight:bold}
 
 /* ===== CONFIRM MODAL ===== */
 .confirm-modal .popup{
@@ -141,7 +159,8 @@ button{cursor:pointer;border:none}
 }
 .confirm-modal p{
   margin:20px 0;
-  font-size:1.1em
+  font-size:1.1em;
+  color:#333
 }
 .confirm-btn{background:#ff416c}
 .cancel-btn{background:#999}
@@ -166,7 +185,36 @@ button{cursor:pointer;border:none}
   display:flex;align-items:center;gap:6px;
   font-weight:bold
 }
-.dot-online{width:8px;height:8px;border-radius:50%;background:#4CAF50}
+
+/* ===== ACTIVE DOT STYLES ===== */
+.dot-online{
+  width:10px;
+  height:10px;
+  border-radius:50%;
+  background:#4CAF50;
+  animation:pulseDot 2s infinite;
+  box-shadow:0 0 0 0 rgba(76,175,80,.7)
+}
+.dot-offline{
+  width:10px;
+  height:10px;
+  border-radius:50%;
+  background:#ccc
+}
+@keyframes pulseDot{
+  0%{
+    box-shadow:0 0 0 0 rgba(76,175,80,.7);
+    transform:scale(1)
+  }
+  70%{
+    box-shadow:0 0 0 10px rgba(76,175,80,0);
+    transform:scale(1.1)
+  }
+  100%{
+    box-shadow:0 0 0 0 rgba(76,175,80,0);
+    transform:scale(1)
+  }
+}
 
 /* BODY */
 .body{
@@ -175,17 +223,19 @@ button{cursor:pointer;border:none}
   align-items:center;
   padding:15px;
   text-align:center;
-  overflow-y:auto
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch
 }
 .body img{width:160px;margin:10px 0}
 .body h2{font-size:2.2em;color:#ff416c}
-.body p{margin:6px 0}
+.body p{margin:6px 0;font-size:1em}
 
 /* NAME PLATE */
 .nameplate{
   background:linear-gradient(45deg,gold,#ffd700);
   padding:8px 22px;border-radius:20px;
-  font-weight:bold;margin:10px 0
+  font-weight:bold;margin:10px 0;
+  box-shadow:0 2px 10px rgba(0,0,0,.1)
 }
 
 /* DARE BOX */
@@ -207,7 +257,8 @@ button{cursor:pointer;border:none}
   font-weight:bold;
   text-align:center;
   line-height:1.4;
-  word-wrap:break-word
+  word-wrap:break-word;
+  font-size:1.1em
 }
 canvas{
   position:absolute;inset:0;
@@ -220,11 +271,21 @@ canvas{
   border-radius:30px;
   background:#4CAF50;color:#fff;
   font-weight:bold;
-  margin-top:10px
+  margin-top:10px;
+  transition:transform .2s,background .2s
 }
+#doneBtn:active{transform:scale(.95)}
 .creator-tag{
   margin-top:8px;
-  font-size:.9em
+  font-size:.9em;
+  color:rgba(0,0,0,.6)
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width:480px){
+  #welcome h1{font-size:2.5em}
+  .body h2{font-size:1.8em}
+  .dare-box{height:100px}
 }
 </style>
 </head>
@@ -235,7 +296,7 @@ canvas{
 
 <!-- WELCOME -->
 <div id="welcome">
-  <img src="teddy.png" alt="Teddy">
+  <img src="teddy.png" alt="Teddy" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧸</text></svg>'">
   <h1>Scratch Adventure</h1>
   <button class="main-btn" onclick="openCreate()">Create Room</button>
   <button class="main-btn" onclick="openJoin()">Join Room</button>
@@ -245,7 +306,7 @@ canvas{
 <div class="popup-bg hidden" id="createPop">
   <div class="popup">
     <h3>Create Room</h3>
-    <input id="cName" placeholder="Room Name">
+    <input id="cName" placeholder="Room Name (min 3 chars)">
     <input id="cPass" placeholder="Password">
     <div class="error-msg" id="createError"></div>
     <button onclick="createRoom()">Create</button>
@@ -267,19 +328,20 @@ canvas{
   <div class="popup">
     <h3>Share Room Link</h3>
     <div class="share-link-box" id="shareLink"></div>
+    <div class="success-msg" id="copySuccess">✓ Link copied!</div>
     <button class="copy-btn" onclick="copyLink()">Copy Link</button>
     <button class="cancel-btn" onclick="closeShare()">Cancel</button>
     <div class="share-apps">
       <div class="app-icon" onclick="shareToApp('whatsapp')">
-        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/whatsapp/whatsapp-original.svg" alt="WhatsApp">
+        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/whatsapp/whatsapp-original.svg" alt="WhatsApp" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💚</text></svg>'">
         <span>WhatsApp</span>
       </div>
       <div class="app-icon" onclick="shareToApp('instagram')">
-        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/instagram/instagram-original.svg" alt="Instagram">
+        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/instagram/instagram-original.svg" alt="Instagram" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📸</text></svg>'">
         <span>Instagram</span>
       </div>
       <div class="app-icon" onclick="shareToApp('snapchat')">
-        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/snapchat/snapchat-original.svg" alt="Snapchat">
+        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/snapchat/snapchat-original.svg" alt="Snapchat" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👻</text></svg>'">
         <span>Snapchat</span>
       </div>
     </div>
@@ -301,13 +363,13 @@ canvas{
   <div class="topbar">
     <button onclick="showConfirmExit()">❌</button>
     <div class="center">
-      👤 <span id="statusDot" class="dot-online"></span>
+      👤 <span id="statusDot" class="dot-offline"></span> <span id="statusText">Offline</span>
     </div>
     <button id="inviteBtn" onclick="openShare()">🔗</button>
   </div>
 
   <div class="body">
-    <img src="teddy.png" alt="Teddy">
+    <img src="teddy.png" alt="Teddy" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧸</text></svg>'">
     <h2>Scratch Adventure</h2>
     <p>Scratch the field with your finger</p>
     <p id="infoText">Waiting for partner...</p>
@@ -336,17 +398,135 @@ for(let i=0;i<25;i++){
   p.appendChild(d);
 }
 
-/* ===== SOCKET ===== */
-const socket=io();
+/* ===== SOCKET SETUP ===== */
+let socket;
 let room="",role="",myTurn=false,scratched=false;
+let reconnectAttempts=0;
+let partnerOnline=false;
 
-/* POPUP HELPERS */
+function connectSocket(){
+  socket = io({
+    reconnection: true,
+    reconnectionDelay: 1000,
+    reconnectionAttempts: 10,
+    timeout: 20000
+  });
+
+  socket.on("connect", () => {
+    console.log("✅ Connected to server");
+    reconnectAttempts=0;
+    if(room && role){
+      socket.emit("rejoin-room", { room, role });
+    }
+  });
+
+  socket.on("disconnect", reason => {
+    console.log("❌ Disconnected:", reason);
+    if(reason === "io server disconnect"){
+      alert("Server disconnected. Refresh page.");
+    }
+  });
+
+  socket.on("connect_error", err => {
+    console.log("Connection error:", err);
+    reconnectAttempts++;
+    if(reconnectAttempts > 3){
+      alert("Network issue. Check connection.");
+    }
+  });
+
+  /* ===== ROOM EVENTS ===== */
+  socket.on("room-created", d => {
+    role=d.role; room=d.room;
+    startGame();
+  });
+
+  socket.on("room-joined", d => {
+    role=d.role; room=d.room;
+    startGame();
+  });
+
+  socket.on("room-error", data => {
+    if(data.type==='create'){
+      showError('create',data.msg);
+    } else if(data.type==='join'){
+      showError('join',data.msg);
+    }
+  });
+
+  socket.on("joiner-joined", () => {
+    infoText.textContent="Partner joined! Starting...";
+    updateDotStatus(true);
+    setTimeout(()=>{
+      infoText.textContent=myTurn?"Your turn":"Partner's turn";
+    },2000);
+  });
+
+  socket.on("joiner-left", () => {
+    alert("Partner left the room!");
+    updateDotStatus(false);
+    setTimeout(()=>location.reload(), 2000);
+  });
+
+  socket.on("room-closed", () => {
+    alert("Room closed by creator!");
+    location.reload();
+  });
+
+  /* ===== PARTNER STATUS EVENTS ===== */
+  socket.on("partner-status", ({ online }) => {
+    updateDotStatus(online);
+  });
+
+  /* ===== GAMEPLAY EVENTS ===== */
+  socket.on("reveal-dare", dare => {
+    dareText.textContent=dare;
+    doneBtn.classList.remove("hidden");
+  });
+
+  socket.on("next-turn", turn => {
+    myTurn=(turn===role);
+    scratched=false;
+    doneBtn.classList.add("hidden");
+    dareText.textContent="❤️ Scratch to reveal!";
+    setupCanvas();
+    infoText.textContent=myTurn?"Your turn":"Partner's turn";
+  });
+
+  socket.on("scratch", data => {
+    if(!myTurn && canvas.width>0){
+      ctx.beginPath();
+      ctx.arc(data.x*canvas.width, data.y*canvas.height, data.r*canvas.width, 0, Math.PI*2);
+      ctx.fill();
+    }
+  });
+}
+
+/* ===== UPDATE DOT STATUS ===== */
+function updateDotStatus(online){
+  partnerOnline=online;
+  const dot=document.getElementById('statusDot');
+  const statusText=document.getElementById('statusText');
+  
+  if(online){
+    dot.className='dot-online';
+    statusText.textContent='Online';
+    statusText.style.color='#4CAF50';
+  } else {
+    dot.className='dot-offline';
+    statusText.textContent='Offline';
+    statusText.style.color='#999';
+  }
+}
+
+/* ===== POPUP HELPERS ===== */
 function closeAllPopups(){
   createPop.classList.add("hidden");
   joinPop.classList.add("hidden");
   sharePop.classList.add("hidden");
   confirmPop.classList.add("hidden");
-  document.querySelectorAll('.error-msg').forEach(el=>el.style.display='none');
+  document.querySelectorAll('.error-msg').forEach(el=>{el.style.display='none'; el.textContent='';});
+  document.getElementById('copySuccess').style.display='none';
 }
 function showError(type,msg){
   const errEl=document.getElementById(type+'Error');
@@ -354,7 +534,7 @@ function showError(type,msg){
   errEl.style.display='block';
 }
 
-/* WELCOME */
+/* ===== WELCOME ===== */
 const openCreate=()=>{
   createPop.classList.remove("hidden");
   joinPop.classList.add("hidden");
@@ -364,12 +544,16 @@ const openJoin=()=>{
   createPop.classList.add("hidden");
 }
 
-/* ROOM */
+/* ===== ROOM ACTIONS ===== */
 function createRoom(){
   const name=cName.value.trim();
   const pass=cPass.value.trim();
   if(!name||!pass){
     showError('create','Please fill all fields');
+    return;
+  }
+  if(name.length<3){
+    showError('create','Room name min 3 characters');
     return;
   }
   socket.emit("create-room",{name,password:pass});
@@ -384,31 +568,10 @@ function joinRoom(){
   socket.emit("join-room",{name,password:pass});
 }
 
-socket.on("room-created",d=>{
-  role=d.role;room=d.room;
-  startGame();
-});
-socket.on("room-joined",d=>{
-  role=d.role;room=d.room;
-  startGame();
-});
-socket.on("room-error",data=>{
-  if(data.type==='create') showError('create',data.msg);
-  if(data.type==='join') showError('join',data.msg);
-});
-
-function startGame(){
-  closeAllPopups();
-  welcome.classList.add("hidden");
-  game.classList.remove("hidden");
-  roomLabel.textContent=room;
-  if(role==="joiner") inviteBtn.style.display="none";
-  setupCanvas();
-}
-
 /* ===== SHARE MODAL ===== */
 function openShare(){
-  const link=`https://yourdomain.com/join/${room}`; // Replace with your actual domain
+  if(!room) return;
+  const link=`${window.location.origin}/?room=${room}`;
   document.getElementById('shareLink').textContent=link;
   sharePop.classList.remove('hidden');
 }
@@ -418,18 +581,30 @@ function closeShare(){
 function copyLink(){
   const link=document.getElementById('shareLink').textContent;
   navigator.clipboard.writeText(link).then(()=>{
-    alert('Link copied!');
-    closeShare();
+    document.getElementById('copySuccess').style.display='block';
+    setTimeout(()=>{
+      closeShare();
+      document.getElementById('copySuccess').style.display='none';
+    },1500);
+  }).catch(()=>{
+    alert('Copy failed. Please copy manually.');
   });
 }
 function shareToApp(app){
-  const link=`https://yourdomain.com/join/${room}`; // Replace with your actual domain
+  if(!room) return;
+  const link=`${window.location.origin}/?room=${room}`;
   const text=`Join my Scratch Adventure room: ${room}`;
   let url='';
   switch(app){
-    case 'whatsapp': url=`https://wa.me/?text=${encodeURIComponent(text+' '+link)}`; break;
-    case 'instagram': alert('Instagram sharing requires mobile app integration'); return;
-    case 'snapchat': url=`https://snapchat.com/scan?attachmentUrl=${encodeURIComponent(link)}`; break;
+    case 'whatsapp':
+      url=`https://wa.me/?text=${encodeURIComponent(text+' '+link)}`;
+      break;
+    case 'instagram':
+      alert('⚠️ Instagram: Copy link and paste in chat');
+      return;
+    case 'snapchat':
+      url=`https://snapchat.com/scan?attachmentUrl=${encodeURIComponent(link)}`;
+      break;
   }
   if(url) window.open(url,'_blank');
   closeShare();
@@ -444,25 +619,62 @@ function closeConfirm(){
 }
 function confirmExit(){
   if(role==="creator") socket.emit("exit-room",room);
+  socket.disconnect();
   location.reload();
 }
 
-/* ===== CANVAS ===== */
+/* ===== GAME START ===== */
+function startGame(){
+  closeAllPopups();
+  welcome.classList.add("hidden");
+  game.classList.remove("hidden");
+  roomLabel.textContent=room;
+  if(role==="joiner") inviteBtn.style.display="none";
+  
+  setupCanvas();
+  
+  if(role==="creator"){
+    myTurn=true;
+    infoText.textContent="Your turn";
+    updateDotStatus(false); // Initially offline until joiner joins
+  } else {
+    myTurn=false;
+    infoText.textContent="Partner's turn";
+    updateDotStatus(true); // Joiner sees creator as online
+  }
+}
+
+/* ===== CANVAS SETUP & SCRATCHING ===== */
 const canvas=document.getElementById("scratch");
 const ctx=canvas.getContext("2d");
+let drawing=false;
+
 function setupCanvas(){
   const box=document.querySelector('.dare-box');
-  canvas.width=box.offsetWidth;
-  canvas.height=box.offsetHeight;
-  ctx.fillStyle="red";
-  ctx.fillRect(0,0,canvas.width,canvas.height);
+  const rect=box.getBoundingClientRect();
+  
+  // Handle high DPI screens
+  const dpr=window.devicePixelRatio||1;
+  canvas.width=rect.width*dpr;
+  canvas.height=rect.height*dpr;
+  canvas.style.width=rect.width+'px';
+  canvas.style.height=rect.height+'px';
+  ctx.scale(dpr,dpr);
+  
+  // Fill with red overlay
+  ctx.fillStyle="#ff416c";
+  ctx.fillRect(0,0,rect.width,rect.height);
   ctx.globalCompositeOperation="destination-out";
 }
-let drawing=false;
+
 function getPos(e){
   const rect=canvas.getBoundingClientRect();
-  return {x:e.clientX-rect.left, y:e.clientY-rect.top};
+  return {
+    x:(e.clientX-rect.left)/rect.width,
+    y:(e.clientY-rect.top)/rect.height
+  };
 }
+
 canvas.onpointerdown=e=>{
   if(!myTurn||scratched) return;
   drawing=true;
@@ -472,8 +684,9 @@ canvas.onpointermove=e=>{
   if(!drawing||!myTurn||scratched) return;
   const pos=getPos(e);
   ctx.beginPath();
-  ctx.arc(pos.x,pos.y,18,0,Math.PI*2);
+  ctx.arc(pos.x*canvas.width, pos.y*canvas.height, 18, 0, Math.PI*2);
   ctx.fill();
+  socket.emit("scratch",{room,x:pos.x,y:pos.y,r:18/canvas.width});
   e.preventDefault();
 };
 canvas.onpointerup=()=>{
@@ -485,36 +698,52 @@ canvas.onpointerup=()=>{
 };
 canvas.onpointerleave=()=>{drawing=false};
 
-/* GAME EVENTS */
-socket.on("reveal-dare",d=>{
-  dareText.textContent=d;
-  doneBtn.classList.remove("hidden");
-});
-socket.on("next-turn",t=>{
-  myTurn=(t===role);
-  scratched=false;
-  doneBtn.classList.add("hidden");
-  dareText.textContent="❤️ Scratch to reveal!";
-  setupCanvas();
-  infoText.textContent=myTurn?"Your turn":"Partner's turn";
-});
-
+/* ===== GAME ACTIONS ===== */
 function done(){
   socket.emit("done",room);
+  doneBtn.classList.add("hidden");
 }
 
-/* ===== RESPONSIVE ===== */
+/* ===== VISIBILITY & RESIZE HANDLING ===== */
+document.addEventListener('visibilitychange',()=>{
+  if(!document.hidden && socket && !socket.connected){
+    reconnectAttempts=0;
+    socket.connect();
+  }
+});
+
 window.addEventListener('resize',()=>{
   if(!game.classList.contains('hidden')){
     setupCanvas();
   }
 });
 
-/* ===== CLOSE POPUPS ON BACKDROP CLICK ===== */
+/* ===== BACKDROP CLICK CLOSE ===== */
 document.querySelectorAll('.popup-bg').forEach(bg=>{
   bg.addEventListener('click',e=>{
     if(e.target===bg) closeAllPopups();
   });
+});
+
+/* ===== INIT ===== */
+window.addEventListener('load',()=>{
+  connectSocket();
+  
+  // Auto-fill room from URL
+  const params=new URLSearchParams(window.location.search);
+  const roomParam=params.get('room');
+  if(roomParam){
+    openJoin();
+    jName.value=roomParam;
+  }
+});
+
+/* ===== ERROR HANDLING ===== */
+window.addEventListener('error',e=>{
+  console.error('Client error:',e.error);
+});
+window.addEventListener('unhandledrejection',e=>{
+  console.error('Unhandled promise rejection:',e.reason);
 });
 </script>
 </body>
