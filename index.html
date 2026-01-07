@@ -452,11 +452,11 @@ function connectSocket(){
   });
 
   socket.on("joiner-joined", () => {
-    infoText.textContent="Partner joined! Starting...";
     updateDotStatus(true);
+    infoText.textContent="Partner ready!";
     setTimeout(()=>{
       infoText.textContent=myTurn?"Your turn":"Partner's turn";
-    },2000);
+    },1500);
   });
 
   socket.on("joiner-left", () => {
