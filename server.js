@@ -2,7 +2,6 @@ const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
 const path = require("path");
-const crypto = require("crypto"); // For secure tokens
 
 const app = express();
 const server = http.createServer(app);
@@ -34,11 +33,9 @@ function randomDare() {
   return dares[Math.floor(Math.random() * dares.length)];
 }
 
-/* ===== ROOM STORE with Grace Period ===== */
+/* ===== ROOM STORE ===== */
 const rooms = {}; 
-const disconnectedUsers = new Map(); // socket.id -> { room, role, timeout }
 const ROOM_TTL = 24 * 60 * 60 * 1000; // 24 hours
-const RECONNECTION_GRACE = 60 * 1000; // 60 seconds
 
 function cleanRooms() {
   const now = Date.now();
@@ -48,59 +45,9 @@ function cleanRooms() {
 }
 setInterval(cleanRooms, 60 * 1000);
 
-/* ===== PARTNER STATUS HANDLER ===== */
-function updatePartnerStatus(roomName, userRole, online) {
-  const room = rooms[roomName];
-  if (!room) return;
-  
-  const partnerRole = userRole === "creator" ? "joiner" : "creator";
-  const partnerId = room[partnerRole];
-  
-  if (partnerId) {
-    io.to(partnerId).emit("partner-status", { online });
-  }
-}
-
 /* ===== SOCKET.IO EVENTS ===== */
 io.on("connection", socket => {
   console.log("🔌 User connected:", socket.id);
-
-  // Handle reconnection
-  socket.on("rejoin-room", ({ room: roomName, role: userRole }) => {
-    const room = rooms[roomName];
-    if (!room) {
-      socket.emit("room-error", { type: "rejoin", msg: "Room not found" });
-      return;
-    }
-
-    // Clear any pending disconnect timeout
-    const pending = disconnectedUsers.get(socket.id);
-    if (pending) {
-      clearTimeout(pending.timeout);
-      disconnectedUsers.delete(socket.id);
-    }
-
-    // Re-associate socket
-    socket.room = roomName;
-    socket.role = userRole;
-    socket.join(roomName);
-    
-    // Update room data with new socket ID
-    room[userRole] = socket.id;
-    
-    // Notify partner
-    updatePartnerStatus(roomName, userRole, true);
-    
-    // Send current game state
-    socket.emit("room-rejoined", { 
-      role: userRole, 
-      room: roomName,
-      myTurn: room.turn === userRole,
-      partnerOnline: room[userRole === "creator" ? "joiner" : "creator"] ? true : false
-    });
-    
-    console.log(`🔄 User rejoined room: ${roomName} as ${userRole}`);
-  });
 
   socket.on("create-room", ({ name, password }) => {
     if (!name || !password || name.length < 3) {
@@ -111,10 +58,6 @@ io.on("connection", socket => {
       socket.emit("room-error", { type: "create", msg: "Room already exists" });
       return;
     }
-    
-    // Generate secure token for creator
-    const creatorToken = crypto.randomBytes(16).toString('hex');
-    
     rooms[name] = {
       password,
       creator: socket.id,
@@ -122,17 +65,12 @@ io.on("connection", socket => {
       dare: randomDare(),
       scratched: false,
       turn: "creator",
-      createdAt: Date.now(),
-      creatorToken // Store token for auto-login
+      createdAt: Date.now()
     };
     socket.room = name;
     socket.role = "creator";
     socket.join(name);
-    socket.emit("room-created", { 
-      role: "creator", 
-      room: name,
-      creatorToken // Send token to client
-    });
+    socket.emit("room-created", { role: "creator", room: name });
     console.log(`🏠 Room created: ${name} by ${socket.id}`);
   });
 
@@ -156,7 +94,7 @@ io.on("connection", socket => {
     socket.join(name);
     socket.emit("room-joined", { role: "joiner", room: name });
     
-    // Notify both about partner status
+    // Send instant partner status update to both
     io.to(room.creator).emit("joiner-joined");
     io.to(room.creator).emit("partner-status", { online: true });
     io.to(room.joiner).emit("partner-status", { online: true });
@@ -197,33 +135,17 @@ io.on("connection", socket => {
   socket.on("disconnect", reason => {
     console.log("🔌 User disconnected:", socket.id, "Reason:", reason);
     
-    // Don't immediately remove - wait for grace period
+    // Don't remove from room immediately - keep in memory for reconnection
+    // Only update partner status
     if (socket.room && socket.role) {
-      // Store disconnect info
-      const timeout = setTimeout(() => {
-        // Grace period over - actually remove user
-        disconnectedUsers.delete(socket.id);
-        
-        const room = rooms[socket.room];
-        if (room) {
-          if (socket.role === "joiner") {
-            room.joiner = null;
-            io.to(room.creator).emit("joiner-left");
-            io.to(room.creator).emit("partner-status", { online: false });
-            console.log(`👋 Joiner removed after grace: ${socket.room}`);
-          } else if (socket.role === "creator") {
-            io.to(socket.room).emit("room-closed");
-            delete rooms[socket.room];
-            console.log(`❌ Room deleted after creator grace: ${socket.room}`);
-          }
+      const room = rooms[socket.room];
+      if (room) {
+        const partnerRole = socket.role === "creator" ? "joiner" : "creator";
+        const partnerId = room[partnerRole];
+        if (partnerId) {
+          io.to(partnerId).emit("partner-status", { online: false });
         }
-      }, RECONNECTION_GRACE);
-      
-      disconnectedUsers.set(socket.id, { 
-        room: socket.room, 
-        role: socket.role, 
-        timeout 
-      });
+      }
     }
   });
 });
