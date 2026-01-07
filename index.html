@@ -403,7 +403,6 @@ let socket;
 let room="",role="",myTurn=false,scratched=false;
 let reconnectAttempts=0;
 let partnerOnline=false;
-let creatorToken=null; // Token for creator auto-login
 
 function connectSocket(){
   socket = io({
@@ -416,16 +415,6 @@ function connectSocket(){
   socket.on("connect", () => {
     console.log("✅ Connected to server");
     reconnectAttempts=0;
-    
-    // Try to rejoin from localStorage
-    const savedSession = localStorage.getItem('scratchAdventureSession');
-    if(savedSession){
-      const { room: savedRoom, role: savedRole, token } = JSON.parse(savedSession);
-      if(savedRoom && savedRole){
-        console.log("🔄 Attempting to rejoin room:", savedRoom);
-        socket.emit("rejoin-room", { room: savedRoom, role: savedRole, token });
-      }
-    }
   });
 
   socket.on("disconnect", reason => {
@@ -445,39 +434,20 @@ function connectSocket(){
 
   /* ===== ROOM EVENTS ===== */
   socket.on("room-created", d => {
-    role=d.role; room=d.room; creatorToken=d.creatorToken||null;
-    // Save session
-    localStorage.setItem('scratchAdventureSession', JSON.stringify({ room, role, token: creatorToken }));
+    role=d.role; room=d.room;
     startGame();
   });
 
   socket.on("room-joined", d => {
     role=d.role; room=d.room;
-    // Save session
-    localStorage.setItem('scratchAdventureSession', JSON.stringify({ room, role }));
     startGame();
-  });
-
-  socket.on("room-rejoined", d => {
-    role=d.role; room=d.room; myTurn=d.myTurn;
-    partnerOnline=d.partnerOnline;
-    updateDotStatus(partnerOnline);
-    startGame();
-    console.log("✅ Successfully rejoined room");
   });
 
   socket.on("room-error", data => {
-    if(data.type==='create' || data.type==='join'){
-      // Clear invalid session
-      localStorage.removeItem('scratchAdventureSession');
-    }
     if(data.type==='create'){
       showError('create',data.msg);
     } else if(data.type==='join'){
       showError('join',data.msg);
-    } else if(data.type==='rejoin'){
-      console.log("Rejoin failed:", data.msg);
-      localStorage.removeItem('scratchAdventureSession');
     }
   });
 
@@ -497,7 +467,6 @@ function connectSocket(){
 
   socket.on("room-closed", () => {
     alert("Room closed by creator!");
-    localStorage.removeItem('scratchAdventureSession');
     location.reload();
   });
 
@@ -647,8 +616,6 @@ function closeConfirm(){
 }
 function confirmExit(){
   if(role==="creator") socket.emit("exit-room",room);
-  // Clear session on explicit exit
-  localStorage.removeItem('scratchAdventureSession');
   socket.disconnect();
   location.reload();
 }
